@@ -98,47 +98,60 @@ def show_portfolio(stock_dict):
         average = calculate_average(value[0], value[1])
         print(f'{stock} | {value[0]:5} | R$ {value[1]:,.2f} | R$ {average:5.2f} |')
 
+def welcome():
+    print("Input option beta/portfolio/show/edit/load/save/exit\n")
+    print("Track Beta value, input 'beta' or 'b'")
+    print("Track portfolio value, input 'portfolio' or 'p'")
+    print("Show portfolio, input 'show' or 'h'\n")
+    print("Edit stock list, input 'edit' or 'e'")
+    print("Load stock list, input 'load' or 'l'")
+    print("Save stock list, input 'save' or 's'\n")
+    print("To exit, input 'exit' or 'x'")
+
 if __name__ == "__main__":
 
     option = 'a'
 
     while option != 'exit':
         os.system('clear')
-        print("Track Beta value, input 'beta' or 'b'")
-        print("Track portfolio value, input 'portfolio' or 'p'")
-        print("Show portfolio, input 'show' or 'h'\n")
-        print("Edit stock list, input 'edit' or 'e'")
-        print("Load portfolio, input 'load' or 'l'")
-        print("Save portfolio, input 'save' or 's'")
-        print("To exit, input 'exit' or 'x'")
+        welcome()
+
         option = input("\nInput option: ")
+
         if option == 'beta' or option == 'b':
             track_stock_price(stock_dict)
             input()
+
         elif option == 'portfolio' or option == 'p':
             track_portfolio_value(stock_dict)
             input()
+
         elif option == 'exit' or option == 'x':
             print("Thanks!")
             break
+
         elif option == 'show' or option == 'h':
             show_portfolio(stock_dict)
             input()
+
         elif option == 'load' or option == 'l':
             file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
             with open(file_name, 'r') as json_file:
                 stock_dict = json.load(json_file)
+
         elif option == 'save' or option == 's':
             file_name = input('\nInput save as filename: ')
             if file_name.find('.json') == -1:
                 file_name += '.json'
             with open(file_name, 'w') as json_file:
                 json.dump(stock_dict, json_file)
+
         elif option == 'edit' or option == 'e':
             while True:
                 os.system('clear')
-                print('delete / buy / sell / back')
-                option = input('Input option: ')
+                print('new / delete / buy / sell / back\n')
+                show_portfolio(stock_dict)
+                option = input('\nInput option: ')
 
                 if option == 'delete':
                     stock = input('Input stock ticker to delete: ')
@@ -146,34 +159,56 @@ if __name__ == "__main__":
                         option = input(f'Delete {stock}? Y/n: ')
                         if option == "Y" or option == 'y':
                             del stock_dict[stock]
-                        else:
-                            continue
+
+                    input("To go back to main menu, input 'back'. [Enter]")
+
                 elif option == 'buy':
                     stock = input('Input stock ticker to buy: ')
                     buy = int(input("Input quantity to buy: "))
                     volume = float(input("Input amount spent: "))
-                    if stock in stock_dict:
-                        value = stock_dict[stock]
-                        buy += value[0]
-                        volume += value[1]
-                    stock_dict[stock] = (buy, volume)
+                    option = input(f'Buy {buy} {stock} for R$ {volume}? Y/n: ')
+                    if option == 'y' or option == 'Y':
+                        if stock in stock_dict:
+                            value = stock_dict[stock]
+                            buy += value[0]
+                            volume += value[1]
+                        stock_dict[stock] = (buy, volume)
+
+                    input("To go back to main menu, input 'back'. [Enter]")
 
                 elif option == 'sell':
                     stock = input('Input stock ticker to sell: ')
                     sell = int(input("Input quantity to sell: "))
                     volume = float(input("Input amount spent: "))
-                    if stock in stock_dict:
-                        value = stock_dict[stock]
-                        sell = value[0] - sell
-                        volume = value[1] - volume
-                        stock_dict[stock] = (sell, volume)
-                    else:
-                        print("Cannot short stocks.")
-                        continue
+                    option = input(f"Sell {sell} {stock} for R$ {volume}? Y/n: ")
+                    if option == 'y' or option == "Y":
+                        if stock in stock_dict:
+                            value = stock_dict[stock]
+                            if value[0] >= sell:
+                                sell = value[0] - sell
+                                volume = value[1] - volume
+                                stock_dict[stock] = (sell, volume)
+                            else:
+                                print("Cannot short stocks.")
+
+                        else:
+                            print("Stock not found in portfolio.")
+
+
+                    input("To go back to main menu, input 'back'. [Enter]")
 
                 elif option == 'back':
                     break
+
+                elif option == 'new':
+                    option = input('To create a new stock list you will delete current portfolio.\nContinue? Y/n: ')
+                    if option == 'y' or option == 'Y':
+                        stock_dict = {}
+                        print('Created empty stock list. To add stocks, select option "buy".')
+
+                    input("To go back to main menu, input 'back'. [Enter]")
+
                 else:
                     continue
         else:
-            option = input("\nIncorrect option.\nInput option beta/portfolio/show/edit/load/save/exit':")
+            option = input("\nIncorrect option. [Enter]")
