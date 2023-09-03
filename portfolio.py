@@ -2,6 +2,8 @@
 
 import yfinance as yf
 import time
+import os
+import json
 
 stock_dict = {"PETR3.SA": (1000, 35690.0),
               "VALE3.SA": (1000, 68890.0),
@@ -81,24 +83,33 @@ def track_portfolio_value(stock_dict):
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
-    print("__Stock__|____Avg____|__Current__|__Delta1__|__Delta2__|")
+    print("__Stock__|___Avg____|_Current__|__Delta1__|__Delta2__|")
     for stock, value in stock_dict.items():
         average = calculate_average(value[0], value[1])
         current = data_dict[stock]
         delta1 = current - average
         delta2 = delta1 / average
         delta2 = delta2 * 100
-        print(f'{stock} | R$ {average:6.2f} | R$ {current:6.2f} | R$ {delta1:5.2f} | {delta2:6.2f}%  |')
+        print(f'{stock} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {delta1:5.2f} | {delta2:6.2f}%  |')
 
+def show_portfolio(stock_dict):
+    print("__Stock__|__Qty._|__Volume___|___Avg____|")
+    for stock, value in stock_dict.items():
+        average = calculate_average(value[0], value[1])
+        print(f'{stock} | {value[0]:5} | R$ {value[1]:,.2f} | R$ {average:5.2f} |')
 
 if __name__ == "__main__":
 
     option = 'a'
 
     while option != 'exit':
-
-        print("To track Beta value, input 'beta' or 'b'")
-        print("To track portfolio value, input 'portfolio' or 'p'")
+        os.system('clear')
+        print("Track Beta value, input 'beta' or 'b'")
+        print("Track portfolio value, input 'portfolio' or 'p'")
+        print("Show portfolio, input 'show' or 'h'\n")
+        print("Edit stock list, input 'edit' or 'e'")
+        print("Load portfolio, input 'load' or 'l'")
+        print("Save portfolio, input 'save' or 's'")
         print("To exit, input 'exit' or 'x'")
         option = input("\nInput option: ")
         if option == 'beta' or option == 'b':
@@ -110,6 +121,59 @@ if __name__ == "__main__":
         elif option == 'exit' or option == 'x':
             print("Thanks!")
             break
-        else:
-            option = input("\nIncorrect option.\nInput option 'beta', 'portfolio' or 'exit':")
+        elif option == 'show' or option == 'h':
+            show_portfolio(stock_dict)
+            input()
+        elif option == 'load' or option == 'l':
+            file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
+            with open(file_name, 'r') as json_file:
+                stock_dict = json.load(json_file)
+        elif option == 'save' or option == 's':
+            file_name = input('\nInput save as filename: ')
+            if file_name.find('.json') == -1:
+                file_name += '.json'
+            with open(file_name, 'w') as json_file:
+                json.dump(stock_dict, json_file)
+        elif option == 'edit' or option == 'e':
+            while True:
+                os.system('clear')
+                print('delete / buy / sell / back')
+                option = input('Input option: ')
 
+                if option == 'delete':
+                    stock = input('Input stock ticker to delete: ')
+                    if stock in stock_dict:
+                        option = input(f'Delete {stock}? Y/n: ')
+                        if option == "Y" or option == 'y':
+                            del stock_dict[stock]
+                        else:
+                            continue
+                elif option == 'buy':
+                    stock = input('Input stock ticker to buy: ')
+                    buy = int(input("Input quantity to buy: "))
+                    volume = float(input("Input amount spent: "))
+                    if stock in stock_dict:
+                        value = stock_dict[stock]
+                        buy += value[0]
+                        volume += value[1]
+                    stock_dict[stock] = (buy, volume)
+
+                elif option == 'sell':
+                    stock = input('Input stock ticker to sell: ')
+                    sell = int(input("Input quantity to sell: "))
+                    volume = float(input("Input amount spent: "))
+                    if stock in stock_dict:
+                        value = stock_dict[stock]
+                        sell = value[0] - sell
+                        volume = value[1] - volume
+                        stock_dict[stock] = (sell, volume)
+                    else:
+                        print("Cannot short stocks.")
+                        continue
+
+                elif option == 'back':
+                    break
+                else:
+                    continue
+        else:
+            option = input("\nIncorrect option.\nInput option beta/portfolio/show/edit/load/save/exit':")
