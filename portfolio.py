@@ -16,6 +16,7 @@ def track_stock_price(stock_dict):
     stock_list_size = len(stock_dict)
     try:
         oscillation = 0.0
+        data_dict = {}
 
         for stock_symbol in stock_dict.keys():
             stock = yf.Ticker(stock_symbol)
@@ -26,9 +27,11 @@ def track_stock_price(stock_dict):
             variation = (current_price - open_price) / open_price
             oscillation += variation
 
+            data_dict[stock_symbol] = (open_price, current_price, variation * 100)
+
         oscillation = oscillation / stock_list_size
 
-        print(f'Index oscillation = {oscillation * 100:.2f}%')
+        print(f'\nIndex oscillation = {oscillation * 100:.2f}%')
 
         stock = yf.Ticker(ibovespa_symbol)
         stock_data = stock.history(period="2d")
@@ -42,6 +45,15 @@ def track_stock_price(stock_dict):
         print(f'BETA (Index/IBOV) = {beta:.2f}')
 
         print ('\n- - - - - - - - - - - - - - - - - - - - \n')
+
+        print("__Stock__|__Open____|_Current__|__Delta1__|_Delta2_|__Beta__|")
+
+        for stock_symbol, value in data_dict.items():
+            delta = value[1] - value[0]
+            beta = value[2] / (variation * 100)
+            print(f'{stock_symbol} | R$ {value[0]:5.2f} | R$ {value[1]:5.2f} | R$ {delta:5.2f} | {value[2]:5.2f}% | {beta:5.2f} ')
+
+
 
     except Exception as e:
         print(f"Error: {e}")
@@ -92,6 +104,8 @@ def track_portfolio_value(stock_dict):
         delta2 = delta2 * 100
         print(f'{stock} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {delta1:5.2f} | {delta2:6.2f}%  |')
 
+    print ('\n- - - - - - - - - - - - - - - - - - - - \n')
+
 def show_portfolio(stock_dict):
     print("__Stock__|__Qty._|__Volume___|___Avg____|")
     for stock, value in stock_dict.items():
@@ -120,11 +134,12 @@ if __name__ == "__main__":
 
         if option == 'beta' or option == 'b':
             track_stock_price(stock_dict)
-            input()
+            input('\nPress [Enter]')
 
         elif option == 'portfolio' or option == 'p':
             track_portfolio_value(stock_dict)
-            input()
+            show_portfolio(stock_dict)
+            input('\nPress [Enter]')
 
         elif option == 'exit' or option == 'x':
             print("Thanks!")
@@ -132,7 +147,7 @@ if __name__ == "__main__":
 
         elif option == 'show' or option == 'h':
             show_portfolio(stock_dict)
-            input()
+            input('\nPress [Enter]')
 
         elif option == 'load' or option == 'l':
             file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
@@ -212,3 +227,4 @@ if __name__ == "__main__":
                     continue
         else:
             option = input("\nIncorrect option. [Enter]")
+
