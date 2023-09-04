@@ -112,11 +112,26 @@ def show_portfolio(stock_dict):
         average = calculate_average(value[0], value[1])
         print(f'{stock} | {value[0]:5} | R$ {value[1]:,.2f} | R$ {average:5.2f} |')
 
+def show_stock_info(stock_dict):
+    print("\n__Stock__|____Shares___|_______Mkt.Cap_______|_Current__|")
+    for stock_symbol in stock_dict.keys():
+        stock = yf.Ticker(stock_symbol)
+        stock_data = stock.history(period='1d')
+        current_price = stock_data["Close"].iloc[0]
+        stock_data = stock.get_shares_full(start="2023-01-01", end=None)
+        shares = stock_data.iloc[-1]
+        market = shares * current_price
+        print(f"{stock_symbol} | {shares:,d} | R$ {market:,.2f} | R$ {current_price:5.2f} |")
+
+    print ('\n- - - - - - - - - - - - - - - - - - - - \n')
+
+
 def welcome():
     print("Input option beta/portfolio/show/edit/load/save/exit\n")
     print("Track Beta value, input 'beta' or 'b'")
     print("Track portfolio value, input 'portfolio' or 'p'")
-    print("Show portfolio, input 'show' or 'h'\n")
+    print("Show portfolio, input 'show' or 'h'")
+    print("Stocks info (mkt, shares, price), input 'info' or 'i'\n")
     print("Edit stock list, input 'edit' or 'e'")
     print("Load stock list, input 'load' or 'l'")
     print("Save stock list, input 'save' or 's'\n")
@@ -134,6 +149,10 @@ if __name__ == "__main__":
 
         if option == 'beta' or option == 'b':
             track_stock_price(stock_dict)
+            input('\nPress [Enter]')
+
+        elif option == 'info' or option == 'i':
+            show_stock_info(stock_dict)
             input('\nPress [Enter]')
 
         elif option == 'portfolio' or option == 'p':
@@ -209,7 +228,6 @@ if __name__ == "__main__":
                         else:
                             print("Stock not found in portfolio.")
 
-
                     input("To go back to main menu, input 'back'. [Enter]")
 
                 elif option == 'back':
@@ -227,4 +245,3 @@ if __name__ == "__main__":
                     continue
         else:
             option = input("\nIncorrect option. [Enter]")
-
