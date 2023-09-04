@@ -51,7 +51,7 @@ def track_stock_price(stock_dict):
         for stock_symbol, value in data_dict.items():
             delta = value[1] - value[0]
             beta = value[2] / (variation * 100)
-            print(f'{stock_symbol} | R$ {value[0]:5.2f} | R$ {value[1]:5.2f} | R$ {delta:5.2f} | {value[2]:5.2f}% | {beta:5.2f} ')
+            print(f'{stock_symbol} | R$ {value[0]:5.2f} | R$ {value[1]:5.2f} | R$ {delta:5.2f} | {value[2]:5.2f}% | {beta:5.2f} |')
 
 
 
@@ -65,7 +65,10 @@ def total_invested(stock_dict):
     return round(total_sum, 2)
 
 def calculate_average(stock_qty, volume):
-    return round(volume/stock_qty, 2)
+    if stock_qty > 0:
+        return round(volume/stock_qty, 2)
+    else:
+        return 0.0
 
 def track_portfolio_value(stock_dict):
 
@@ -123,9 +126,6 @@ def show_stock_info(stock_dict):
         market = shares * current_price
         print(f"{stock_symbol} | {shares:,d} | R$ {market:,.2f} | R$ {current_price:5.2f} |")
 
-    print ('\n- - - - - - - - - - - - - - - - - - - - \n')
-
-
 def welcome():
     print("Input option beta/portfolio/show/edit/load/save/exit\n")
     print("Track Beta value, input 'beta' or 'b'")
@@ -170,8 +170,13 @@ if __name__ == "__main__":
 
         elif option == 'load' or option == 'l':
             file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
-            with open(file_name, 'r') as json_file:
-                stock_dict = json.load(json_file)
+            if os.path.isfile(file_name):
+                with open(file_name, 'r') as json_file:
+                    stock_dict = json.load(json_file)
+                print(f'\nLoaded file "{file_name}".')
+            else:
+                print(f'\nFile "{file_name}" does not exist.')
+            input('\nPress [Enter]')
 
         elif option == 'save' or option == 's':
             file_name = input('\nInput save as filename: ')
@@ -179,6 +184,8 @@ if __name__ == "__main__":
                 file_name += '.json'
             with open(file_name, 'w') as json_file:
                 json.dump(stock_dict, json_file)
+            print(f'\nSaved file "{file_name}" in current directory.')
+            input('\nPress [Enter]')
 
         elif option == 'edit' or option == 'e':
             while True:
@@ -239,9 +246,9 @@ if __name__ == "__main__":
                         stock_dict = {}
                         print('Created empty stock list. To add stocks, select option "buy".')
 
-                    input("To go back to main menu, input 'back'. [Enter]")
+                    input("\nTo go back to main menu, input 'back'. [Enter]")
 
                 else:
                     continue
         else:
-            option = input("\nIncorrect option. [Enter]")
+            option = input("\nIncorrect option.")
