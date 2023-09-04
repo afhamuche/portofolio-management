@@ -98,14 +98,16 @@ def track_portfolio_value(stock_dict):
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
-    print("__Stock__|___Avg____|_Current__|__Delta1__|__Delta2__|")
+    print("__Stock__|___Avg____|_Current__|__Delta1__|__Delta2__|___Delta3__|")
     for stock, value in stock_dict.items():
         average = calculate_average(value[0], value[1])
         current = data_dict[stock]
         delta1 = current - average
         delta2 = delta1 / average
         delta2 = delta2 * 100
-        print(f'{stock} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {delta1:5.2f} | {delta2:6.2f}%  |')
+        delta3 = current * value[0]
+        delta3 -= value[1]
+        print(f'{stock} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {delta1:5.2f} | {delta2:6.2f}%  | R$ {delta3:.2f} |')
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
@@ -128,14 +130,88 @@ def show_stock_info(stock_dict):
 
 def welcome():
     print("Input option beta/portfolio/show/edit/load/save/exit\n")
+
     print("Track Beta value, input 'beta' or 'b'")
     print("Track portfolio value, input 'portfolio' or 'p'")
     print("Show portfolio, input 'show' or 'h'")
-    print("Stocks info (shares, mkt cap, price), input 'info' or 'i'\n")
+    print("Stocks info (shares, mkt cap, price), input 'info' or 'i'")
+    print("To lookup stock 1mo history, input 'history' or 'o'\n")
+
     print("Edit stock list, input 'edit' or 'e'")
     print("Load stock list, input 'load' or 'l'")
     print("Save stock list, input 'save' or 's'\n")
+
     print("To exit, input 'exit' or 'x'")
+
+def edit_selection(stock_dict):
+    while True:
+                os.system('clear')
+                print('new / delete / buy / sell / back\n')
+                show_portfolio(stock_dict)
+                option = input('\nInput option: ')
+
+                if option == 'delete':
+                    stock = input('Input stock ticker to delete: ')
+                    if stock in stock_dict:
+                        option = input(f'Delete {stock}? Y/n: ')
+                        if option == "Y" or option == 'y':
+                            del stock_dict[stock]
+                        print(f'Deleted stock {stock}')
+
+                    input("\nTo go back to main menu, input 'back'. [Enter]")
+
+                elif option == 'buy':
+                    stock = input('Input stock ticker to buy: ')
+                    buy = int(input("Input quantity to buy: "))
+                    volume = float(input("Input amount spent: "))
+                    option = input(f'Buy {buy} {stock} for R$ {volume}? Y/n: ')
+                    if option == 'y' or option == 'Y':
+                        if stock in stock_dict:
+                            value = stock_dict[stock]
+                            buy += value[0]
+                            volume += value[1]
+                        stock_dict[stock] = (buy, volume)
+                        print(f'Purchased stock {stock}.')
+                    input("\nTo go back to main menu, input 'back'. [Enter]")
+
+                elif option == 'sell':
+                    stock = input('Input stock ticker to sell: ')
+                    sell = int(input("Input quantity to sell: "))
+                    volume = float(input("Input amount spent: "))
+                    option = input(f"Sell {sell} {stock} for R$ {volume}? Y/n: ")
+                    if option == 'y' or option == "Y":
+                        if stock in stock_dict:
+                            value = stock_dict[stock]
+                            if value[0] >= sell:
+                                sell = value[0] - sell
+                                volume = value[1] - volume
+                                stock_dict[stock] = (sell, volume)
+                                print(f'Sold stock {stock}.')
+                            else:
+                                print("Cannot short stocks.")
+
+                        else:
+                            print(f"Stock {stock} not found in portfolio.")
+
+                    input("\nTo go back to main menu, input 'back'. [Enter]")
+
+                elif option == 'back':
+                    break
+
+                elif option == 'new':
+                    option = input('To create a new stock list you will delete current portfolio.\nContinue? Y/n: ')
+                    if option == 'y' or option == 'Y':
+                        stock_dict = {}
+                        print('Created empty stock list. To add stocks, select option "buy".')
+
+                    input("\nTo go back to main menu, input 'back'. [Enter]")
+
+                else:
+                    continue
+def show_stock_history(stock):
+    ystock = yf.Ticker(stock)
+    hist = ystock.history(period="1mo")
+    print(f'\n{hist}')
 
 if __name__ == "__main__":
 
@@ -168,6 +244,11 @@ if __name__ == "__main__":
             show_portfolio(stock_dict)
             input('\nPress [Enter]')
 
+        elif option == 'history' or option == 'o':
+            stock = input('Input stock ticker to look up in YFinance: ')
+            show_stock_history(stock)
+            input('\nPress [Enter]')
+
         elif option == 'load' or option == 'l':
             file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
             if os.path.isfile(file_name):
@@ -188,67 +269,8 @@ if __name__ == "__main__":
             input('\nPress [Enter]')
 
         elif option == 'edit' or option == 'e':
-            while True:
-                os.system('clear')
-                print('new / delete / buy / sell / back\n')
-                show_portfolio(stock_dict)
-                option = input('\nInput option: ')
+            edit_selection(stock_dict)
 
-                if option == 'delete':
-                    stock = input('Input stock ticker to delete: ')
-                    if stock in stock_dict:
-                        option = input(f'Delete {stock}? Y/n: ')
-                        if option == "Y" or option == 'y':
-                            del stock_dict[stock]
-
-                    input("To go back to main menu, input 'back'. [Enter]")
-
-                elif option == 'buy':
-                    stock = input('Input stock ticker to buy: ')
-                    buy = int(input("Input quantity to buy: "))
-                    volume = float(input("Input amount spent: "))
-                    option = input(f'Buy {buy} {stock} for R$ {volume}? Y/n: ')
-                    if option == 'y' or option == 'Y':
-                        if stock in stock_dict:
-                            value = stock_dict[stock]
-                            buy += value[0]
-                            volume += value[1]
-                        stock_dict[stock] = (buy, volume)
-
-                    input("To go back to main menu, input 'back'. [Enter]")
-
-                elif option == 'sell':
-                    stock = input('Input stock ticker to sell: ')
-                    sell = int(input("Input quantity to sell: "))
-                    volume = float(input("Input amount spent: "))
-                    option = input(f"Sell {sell} {stock} for R$ {volume}? Y/n: ")
-                    if option == 'y' or option == "Y":
-                        if stock in stock_dict:
-                            value = stock_dict[stock]
-                            if value[0] >= sell:
-                                sell = value[0] - sell
-                                volume = value[1] - volume
-                                stock_dict[stock] = (sell, volume)
-                            else:
-                                print("Cannot short stocks.")
-
-                        else:
-                            print("Stock not found in portfolio.")
-
-                    input("To go back to main menu, input 'back'. [Enter]")
-
-                elif option == 'back':
-                    break
-
-                elif option == 'new':
-                    option = input('To create a new stock list you will delete current portfolio.\nContinue? Y/n: ')
-                    if option == 'y' or option == 'Y':
-                        stock_dict = {}
-                        print('Created empty stock list. To add stocks, select option "buy".')
-
-                    input("\nTo go back to main menu, input 'back'. [Enter]")
-
-                else:
-                    continue
         else:
             option = input("\nIncorrect option.")
+
