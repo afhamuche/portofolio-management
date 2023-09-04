@@ -131,7 +131,7 @@ def welcome():
     print("Track Beta value, input 'beta' or 'b'")
     print("Track portfolio value, input 'portfolio' or 'p'")
     print("Show portfolio, input 'show' or 'h'")
-    print("Stocks info (mkt, shares, price), input 'info' or 'i'\n")
+    print("Stocks info (shares, mkt cap, price), input 'info' or 'i'\n")
     print("Edit stock list, input 'edit' or 'e'")
     print("Load stock list, input 'load' or 'l'")
     print("Save stock list, input 'save' or 's'\n")
