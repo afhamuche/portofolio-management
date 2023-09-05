@@ -98,7 +98,7 @@ def track_portfolio_value(stock_dict):
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
-    print("__Stock__|___Avg____|_Current__|__Delta1__|__Delta2__|___Delta3__|")
+    print("__Stock__|___Avg____|_Current__|__Delta1__|__Delta2__|___Delta3___|")
     for stock, value in stock_dict.items():
         average = calculate_average(value[0], value[1])
         current = data_dict[stock]
@@ -107,7 +107,7 @@ def track_portfolio_value(stock_dict):
         delta2 = delta2 * 100
         delta3 = current * value[0]
         delta3 -= value[1]
-        print(f'{stock} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {delta1:5.2f} | {delta2:6.2f}%  | R$ {delta3:.2f} |')
+        print(f'{stock} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {delta1:5.2f} | {delta2:6.2f}%  | R$ {delta3:7.2f} |')
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
@@ -205,34 +205,31 @@ def variation(current, past):
     return round(data * 100, 2)
 
 def portfolio_variation(stock_dict):
-    print("\n__Stock__|__Current_|___1day__|__7days__|_30days__|")
+    print("\n__Stock__|__Current_|___1day__|__7days__|_30days__|__365days_|")
     for stock_symbol in stock_dict.keys():
         tmp_list = []
         ystock = yf.Ticker(stock_symbol)
-        hist = ystock.history(period='2d')
-        data = hist["Close"].iloc[0]
+        hist = ystock.history(period='1y')
         current = hist["Close"].iloc[-1]
+        data = hist["Close"].iloc[-2]
         tmp_list.append(variation(current, data))
-
-        hist = ystock.history(period='7d')
+        data = hist["Close"].iloc[-5]
+        tmp_list.append(variation(current, data))
+        data = hist["Close"].iloc[-22]
+        tmp_list.append(variation(current, data))
         data = hist["Close"].iloc[0]
         tmp_list.append(variation(current, data))
 
-        hist = ystock.history(period='1mo')
-        data = hist["Close"].iloc[0]
-        tmp_list.append(variation(current, data))
-
-        print(f"{stock_symbol} | R$ {current:5.2f} | {tmp_list[0]:6.2f}% | {tmp_list[1]:6.2f}% | {tmp_list[2]:6.2f}% | ")
+        print(f"{stock_symbol} | R$ {current:5.2f} | {tmp_list[0]:6.2f}% | {tmp_list[1]:6.2f}% | {tmp_list[2]:6.2f}% | {tmp_list[3]:7.2f}% |")
 
 def welcome():
-    print("Input option beta/portfolio/show/edit/load/save/exit\n")
-
+    print("Show portfolio, input 'show' or 'h'")
     print("Track Beta value, input 'beta' or 'b'")
     print("Track portfolio value, input 'portfolio' or 'p'")
-    print("Show portfolio, input 'show' or 'h'")
     print("Track portfolio variation, input 'variation' or 'v'")
-    print("Stocks info (shares, mkt cap, price), input 'info' or 'i'")
-    print("To lookup stock 1mo history, input 'history' or 'o'\n")
+    print("Portfolio shares market capitalization info, input 'info' or 'i'\n")
+
+    print("To lookup individual stock 1mo history, input 'history' or 'o'\n")
 
     print("Edit stock list, input 'edit' or 'e'")
     print("Load stock list, input 'load' or 'l'")
@@ -304,6 +301,3 @@ if __name__ == "__main__":
 
         else:
             option = input("\nIncorrect option.")
-
-
-
