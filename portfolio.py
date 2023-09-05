@@ -128,21 +128,6 @@ def show_stock_info(stock_dict):
         market = shares * current_price
         print(f"{stock_symbol} | {shares:,d} | R$ {market:,.2f} | R$ {current_price:5.2f} |")
 
-def welcome():
-    print("Input option beta/portfolio/show/edit/load/save/exit\n")
-
-    print("Track Beta value, input 'beta' or 'b'")
-    print("Track portfolio value, input 'portfolio' or 'p'")
-    print("Show portfolio, input 'show' or 'h'")
-    print("Stocks info (shares, mkt cap, price), input 'info' or 'i'")
-    print("To lookup stock 1mo history, input 'history' or 'o'\n")
-
-    print("Edit stock list, input 'edit' or 'e'")
-    print("Load stock list, input 'load' or 'l'")
-    print("Save stock list, input 'save' or 's'\n")
-
-    print("To exit, input 'exit' or 'x'")
-
 def edit_selection(stock_dict):
     while True:
                 os.system('clear')
@@ -208,10 +193,52 @@ def edit_selection(stock_dict):
 
                 else:
                     continue
+
 def show_stock_history(stock):
     ystock = yf.Ticker(stock)
     hist = ystock.history(period="1mo")
     print(f'\n{hist}')
+
+def variation(current, past):
+    data = current - past
+    data = data / past
+    return round(data * 100, 2)
+
+def portfolio_variation(stock_dict):
+    print("\n__Stock__|__Current_|___1day__|__7days__|_30days__|")
+    for stock_symbol in stock_dict.keys():
+        tmp_list = []
+        ystock = yf.Ticker(stock_symbol)
+        hist = ystock.history(period='2d')
+        data = hist["Close"].iloc[0]
+        current = hist["Close"].iloc[-1]
+        tmp_list.append(variation(current, data))
+
+        hist = ystock.history(period='7d')
+        data = hist["Close"].iloc[0]
+        tmp_list.append(variation(current, data))
+
+        hist = ystock.history(period='1mo')
+        data = hist["Close"].iloc[0]
+        tmp_list.append(variation(current, data))
+
+        print(f"{stock_symbol} | R$ {current:5.2f} | {tmp_list[0]:6.2f}% | {tmp_list[1]:6.2f}% | {tmp_list[2]:6.2f}% | ")
+
+def welcome():
+    print("Input option beta/portfolio/show/edit/load/save/exit\n")
+
+    print("Track Beta value, input 'beta' or 'b'")
+    print("Track portfolio value, input 'portfolio' or 'p'")
+    print("Show portfolio, input 'show' or 'h'")
+    print("Track portfolio variation, input 'variation' or 'v'")
+    print("Stocks info (shares, mkt cap, price), input 'info' or 'i'")
+    print("To lookup stock 1mo history, input 'history' or 'o'\n")
+
+    print("Edit stock list, input 'edit' or 'e'")
+    print("Load stock list, input 'load' or 'l'")
+    print("Save stock list, input 'save' or 's'\n")
+
+    print("To exit, input 'exit' or 'x'")
 
 if __name__ == "__main__":
 
@@ -225,6 +252,10 @@ if __name__ == "__main__":
 
         if option == 'beta' or option == 'b':
             track_stock_price(stock_dict)
+            input('\nPress [Enter]')
+
+        elif option == 'variation' or option == 'v':
+            portfolio_variation(stock_dict)
             input('\nPress [Enter]')
 
         elif option == 'info' or option == 'i':
@@ -273,4 +304,6 @@ if __name__ == "__main__":
 
         else:
             option = input("\nIncorrect option.")
+
+
 
