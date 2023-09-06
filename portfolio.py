@@ -222,11 +222,26 @@ def portfolio_variation(stock_dict):
 
         print(f"{stock_symbol} | R$ {current:5.2f} | {tmp_list[0]:6.2f}% | {tmp_list[1]:6.2f}% | {tmp_list[2]:6.2f}% | {tmp_list[3]:7.2f}% |")
 
+def portfolio_statistics(stock_dict):
+    print("\n__Stock__|Current(c)_|__Mean(m)__|_Std.Dev__|_c<m__|__(c-m)/s_|")
+    for stock_symbol in stock_dict.keys():
+        ystock = yf.Ticker(stock_symbol)
+        hist = ystock.history(period='2mo')
+        current = hist['Close'].iloc[-1]
+        mean = np.mean(hist['Close'].iloc[:])
+        sigma = np.std(hist['Close'].iloc[:])
+        test = current - mean
+        delta = test / sigma
+        delta = delta * 100
+        test = test < 0
+        print(f'{stock_symbol} | R$ {current:6.2f} | R$ {mean:6.2f} | R$ {sigma:5.2f} | {test:4} | {delta:7.2f}% |')
+
 def welcome():
     print("Show portfolio, input 'show' or 'h'")
     print("Track Beta value, input 'beta' or 'b'")
     print("Track portfolio value, input 'portfolio' or 'p'")
     print("Track portfolio variation, input 'variation' or 'v'")
+    print("Track portfolio statistics, input 'stats' or 't'")
     print("Portfolio shares market capitalization info, input 'info' or 'i'\n")
 
     print("To lookup individual stock 1mo history, input 'history' or 'o'\n")
@@ -253,6 +268,10 @@ if __name__ == "__main__":
 
         elif option == 'variation' or option == 'v':
             portfolio_variation(stock_dict)
+            input('\nPress [Enter]')
+
+        elif option == 'stats' or option == 't':
+            portfolio_statistics(stock_dict)
             input('\nPress [Enter]')
 
         elif option == 'info' or option == 'i':
