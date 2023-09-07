@@ -17,7 +17,7 @@ def track_stock_price(stock_dict):
     ibov_var = variation(hist['Close'].iloc[-1], hist['Close'].iloc[0])
     port_var = 0
 
-    print("__Stock__|_Current__|__Open____|__Delta1__|_Delta2_|__Beta__|")
+    print("__Stock___|_Current__|__Close___|__Delta1__|_Delta2_|__Beta__|")
     for stock_symbol in stock_dict.keys():
         stock = yf.Ticker(stock_symbol)
         hist = stock.history(period='2d')
@@ -26,7 +26,7 @@ def track_stock_price(stock_dict):
         var = variation(current, past)
         beta = var / ibov_var
         delta = current - past
-        print(f'{stock_symbol} | R$ {current:5.2f} | R$ {past:5.2f} | R$ {delta:5.2f} | {var:5.2f}% | {beta:5.2f} |')
+        print(f'{stock_symbol:9} | R$ {current:5.2f} | R$ {past:5.2f} | R$ {delta:5.2f} | {var:5.2f}% | {beta:5.2f} |')
 
         port_var += var
 
@@ -78,7 +78,7 @@ def track_portfolio_value(stock_dict):
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
-    print("__Stock__|___Avg____|_Current__|__Delta1__|__Delta2__|___Delta3___|")
+    print("__Stock___|___Avg____|_Current__|__Delta1__|__Delta2__|___Delta3___|")
     for stock, value in stock_dict.items():
         average = calculate_average(value[0], value[1])
         current = data_dict[stock]
@@ -87,18 +87,18 @@ def track_portfolio_value(stock_dict):
         delta2 = delta2 * 100
         delta3 = current * value[0]
         delta3 -= value[1]
-        print(f'{stock} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {delta1:5.2f} | {delta2:6.2f}%  | R$ {delta3:7.2f} |')
+        print(f'{stock:9} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {delta1:5.2f} | {delta2:6.2f}%  | R$ {delta3:7.2f} |')
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
 def show_portfolio(stock_dict):
-    print("__Stock__|__Qty._|__Volume___|___Avg____|")
+    print("__Stock___|__Qty._|__Volume___|___Avg____|")
     for stock, value in stock_dict.items():
         average = calculate_average(value[0], value[1])
-        print(f'{stock} | {value[0]:5} | R$ {value[1]:,.2f} | R$ {average:5.2f} |')
+        print(f'{stock:9} | {value[0]:5} | R$ {value[1]:,.2f} | R$ {average:5.2f} |')
 
 def show_stock_info(stock_dict):
-    print("\n__Stock__|____Shares___|_______Mkt.Cap_______|_Current__|")
+    print("\n__Stock___|____Shares___|_______Mkt.Cap_______|_Current__|")
     for stock_symbol in stock_dict.keys():
         stock = yf.Ticker(stock_symbol)
         stock_data = stock.history(period='1d')
@@ -106,7 +106,7 @@ def show_stock_info(stock_dict):
         stock_data = stock.get_shares_full(start="2023-01-01", end=None)
         shares = stock_data.iloc[-1]
         market = shares * current_price
-        print(f"{stock_symbol} | {shares:11,d} | R$ {market:,.2f} | R$ {current_price:5.2f} |")
+        print(f"{stock_symbol:9} | {shares:11,d} | R$ {market:,.2f} | R$ {current_price:5.2f} |")
 
 def edit_selection(stock_dict):
     while True:
@@ -189,7 +189,7 @@ def variation(current, past):
     return round(data * 100, 2)
 
 def portfolio_variation(stock_dict):
-    print("\n__Stock__|__Current_|___1day__|__7days__|_30days__|__365days_|")
+    print("\n__Stock___|__Current_|___1day__|__7days__|_30days__|__365days_|")
     for stock_symbol in stock_dict.keys():
         tmp_list = []
         ystock = yf.Ticker(stock_symbol)
@@ -204,11 +204,11 @@ def portfolio_variation(stock_dict):
         data = hist["Close"].iloc[0]
         tmp_list.append(variation(current, data))
 
-        print(f"{stock_symbol} | R$ {current:5.2f} | {tmp_list[0]:6.2f}% | {tmp_list[1]:6.2f}% | {tmp_list[2]:6.2f}% | {tmp_list[3]:7.2f}% |")
+        print(f"{stock_symbol:9} | R$ {current:5.2f} | {tmp_list[0]:6.2f}% | {tmp_list[1]:6.2f}% | {tmp_list[2]:6.2f}% | {tmp_list[3]:7.2f}% |")
 
 def portfolio_statistics(stock_dict):
     print("\nData from last 2 months.")
-    print("\n__Stock__|Current(c)_|__Mean(m)__|_Std.Dev__|_c<m__|__(c-m)/s_|")
+    print("\n__Stock___|Current(c)_|__Mean(m)__|_Std.Dev__|_c<m__|__(c-m)/s_|")
     for stock_symbol in stock_dict.keys():
         ystock = yf.Ticker(stock_symbol)
         hist = ystock.history(period='2mo')
@@ -219,7 +219,24 @@ def portfolio_statistics(stock_dict):
         delta = test / sigma
         delta = delta * 100
         test = test < 0
-        print(f'{stock_symbol} | R$ {current:6.2f} | R$ {mean:6.2f} | R$ {sigma:5.2f} | {test:4} | {delta:7.2f}% |')
+        print(f'{stock_symbol:9} | R$ {current:6.2f} | R$ {mean:6.2f} | R$ {sigma:5.2f} | {test:4} | {delta:7.2f}% |')
+
+def portfolio_ratios(stock_dict):
+    print("\n__Stock___|_Current__|_EBITDA_|__ROE___|___ROA__|_Cratio|__50dAvg__|_beta_|")
+    for stock_symbol in stock_dict.keys():
+        try:
+            stock_ticker = yf.Ticker(stock_symbol)
+            stock = stock_ticker.info
+            current = stock['currentPrice']
+            ebitda = stock['ebitdaMargins'] * 100
+            roe = stock['returnOnEquity'] * 100
+            roa = stock['returnOnAssets'] * 100
+            cratio = stock['currentRatio']
+            fifty = stock['fiftyDayAverage']
+            beta = stock['beta']
+            print(f'{stock_symbol:9} | R$ {current:5.2f} | {ebitda:5.2f}% | {roe:5.2f}% | {roa:5.2f}% | {cratio:4.2f}x | R$ {fifty:5.2f} | {beta:4.2f} |')
+        except Exception as e:
+            continue
 
 def welcome():
     print("Show portfolio, input 'show' or 'h'")
@@ -227,7 +244,8 @@ def welcome():
     print("Track portfolio value, input 'portfolio' or 'p'")
     print("Track portfolio variation, input 'variation' or 'v'")
     print("Track portfolio statistics, input 'stats' or 't'")
-    print("Portfolio shares market capitalization info, input 'info' or 'i'\n")
+    print("Portfolio shares market capitalization info, input 'info' or 'i'")
+    print("Track stocks ratio, input 'ratio' or 'r'\n")
 
     print("To lookup individual stock 1mo history, input 'history' or 'o'\n")
 
@@ -253,6 +271,10 @@ if __name__ == "__main__":
 
         elif option == 'variation' or option == 'v':
             portfolio_variation(stock_dict)
+            input('\nPress [Enter]')
+
+        elif option == 'ratio' or option == 'r':
+            portfolio_ratios(stock_dict)
             input('\nPress [Enter]')
 
         elif option == 'stats' or option == 't':
@@ -305,4 +327,3 @@ if __name__ == "__main__":
 
         else:
             option = input("\nIncorrect option.")
-
