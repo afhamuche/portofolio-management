@@ -4,10 +4,9 @@ import yfinance as yf
 import time
 import os
 import json
+import numpy as np
 
-stock_dict = {"PETR3.SA": (1000, 35690.0),
-              "VALE3.SA": (1000, 68890.0),
-}
+stock_dict = {}
 
 ibovespa_symbol = "^BVSP"
 
@@ -126,7 +125,7 @@ def show_stock_info(stock_dict):
         stock_data = stock.get_shares_full(start="2023-01-01", end=None)
         shares = stock_data.iloc[-1]
         market = shares * current_price
-        print(f"{stock_symbol} | {shares:,d} | R$ {market:,.2f} | R$ {current_price:5.2f} |")
+        print(f"{stock_symbol} | {shares:11,d} | R$ {market:,.2f} | R$ {current_price:5.2f} |")
 
 def edit_selection(stock_dict):
     while True:
@@ -223,6 +222,7 @@ def portfolio_variation(stock_dict):
         print(f"{stock_symbol} | R$ {current:5.2f} | {tmp_list[0]:6.2f}% | {tmp_list[1]:6.2f}% | {tmp_list[2]:6.2f}% | {tmp_list[3]:7.2f}% |")
 
 def portfolio_statistics(stock_dict):
+    print("\nData from last 2 months.")
     print("\n__Stock__|Current(c)_|__Mean(m)__|_Std.Dev__|_c<m__|__(c-m)/s_|")
     for stock_symbol in stock_dict.keys():
         ystock = yf.Ticker(stock_symbol)
