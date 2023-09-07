@@ -38,8 +38,6 @@ def track_stock_price(stock_dict):
     print(f'IBOV variatio = {ibov_var:.2f}%')
     print(f'Beta (Port/IBOV) = {port_var / ibov_var:.2f}')
 
-
-
 def total_invested(stock_dict):
     total_sum = 0.0
     for stock, value in stock_dict.items():
@@ -130,8 +128,10 @@ def edit_selection(stock_dict):
                 elif option == 'buy':
                     stock = input('Input stock ticker to buy: ')
                     buy = int(input("Input quantity to buy: "))
-                    volume = float(input("Input amount spent: "))
-                    option = input(f'Buy {buy} {stock} for R$ {volume}? Y/n: ')
+                    price = float(input("Input price per share: "))
+                    volume = buy * price
+
+                    option = input(f'Buy {buy} {stock} for R$ {price} each? Y/n: ')
                     if option == 'y' or option == 'Y':
                         if stock in stock_dict:
                             value = stock_dict[stock]
@@ -144,8 +144,10 @@ def edit_selection(stock_dict):
                 elif option == 'sell':
                     stock = input('Input stock ticker to sell: ')
                     sell = int(input("Input quantity to sell: "))
-                    volume = float(input("Input amount spent: "))
-                    option = input(f"Sell {sell} {stock} for R$ {volume}? Y/n: ")
+                    price = float(input("Input price per share: "))
+                    volume = sell * price
+
+                    option = input(f"Sell {sell} {stock} for R$ {price} each? Y/n: ")
                     if option == 'y' or option == "Y":
                         if stock in stock_dict:
                             value = stock_dict[stock]
@@ -303,3 +305,4 @@ if __name__ == "__main__":
 
         else:
             option = input("\nIncorrect option.")
+
