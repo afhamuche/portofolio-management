@@ -12,50 +12,33 @@ ibovespa_symbol = "^BVSP"
 
 def track_stock_price(stock_dict):
 
-    stock_list_size = len(stock_dict)
-    try:
-        oscillation = 0.0
-        data_dict = {}
+    stock = yf.Ticker(ibovespa_symbol)
+    hist = stock.history(period='2d')
+    ibov_var = variation(hist['Close'].iloc[-1], hist['Close'].iloc[0])
+    port_var = 0
 
-        for stock_symbol in stock_dict.keys():
-            stock = yf.Ticker(stock_symbol)
-            stock_data = stock.history(period="2d")
-            open_price = stock_data["Close"].iloc[0]
-            current_price = stock_data["Close"].iloc[1]
+    print("__Stock__|_Current__|__Open____|__Delta1__|_Delta2_|__Beta__|")
+    for stock_symbol in stock_dict.keys():
+        stock = yf.Ticker(stock_symbol)
+        hist = stock.history(period='2d')
+        current = hist['Close'].iloc[-1]
+        past = hist['Close'].iloc[0]
+        var = variation(current, past)
+        beta = var / ibov_var
+        delta = current - past
+        print(f'{stock_symbol} | R$ {current:5.2f} | R$ {past:5.2f} | R$ {delta:5.2f} | {var:5.2f}% | {beta:5.2f} |')
 
-            variation = (current_price - open_price) / open_price
-            oscillation += variation
+        port_var += var
 
-            data_dict[stock_symbol] = (open_price, current_price, variation * 100)
+    print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
-        oscillation = oscillation / stock_list_size
+    port_var = port_var / len(stock_dict)\
 
-        print(f'\nIndex oscillation = {oscillation * 100:.2f}%')
-
-        stock = yf.Ticker(ibovespa_symbol)
-        stock_data = stock.history(period="2d")
-        open_price = stock_data["Close"].iloc[0]
-        current_price = stock_data["Close"].iloc[1]
-
-        variation = (current_price - open_price) / open_price
-        print(f'IBOV variation = {variation * 100:.2f}%')
-
-        beta = oscillation / variation
-        print(f'BETA (Index/IBOV) = {beta:.2f}')
-
-        print ('\n- - - - - - - - - - - - - - - - - - - - \n')
-
-        print("__Stock__|__Open____|_Current__|__Delta1__|_Delta2_|__Beta__|")
-
-        for stock_symbol, value in data_dict.items():
-            delta = value[1] - value[0]
-            beta = value[2] / (variation * 100)
-            print(f'{stock_symbol} | R$ {value[0]:5.2f} | R$ {value[1]:5.2f} | R$ {delta:5.2f} | {value[2]:5.2f}% | {beta:5.2f} |')
+    print(f'Portfolio variation = {port_var:.2f}%')
+    print(f'IBOV variatio = {ibov_var:.2f}%')
+    print(f'Beta (Port/IBOV) = {port_var / ibov_var:.2f}')
 
 
-
-    except Exception as e:
-        print(f"Error: {e}")
 
 def total_invested(stock_dict):
     total_sum = 0.0
