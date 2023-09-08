@@ -247,6 +247,8 @@ def portfolio_history(stock_dict):
     hist = tickers.history(period=p)
     closes = hist['Close']
 
+    total_inv = total_invested(stock_dict)
+
     data_dict = {}
     for index, row in closes.iterrows():
         portfolio = []
@@ -254,11 +256,13 @@ def portfolio_history(stock_dict):
             portfolio.append(round(stock_dict[column_name][0] * value, 2))
         data_dict[index] = portfolio
 
+    print('Date_______|___value_____|__diff______|')
     for key, value in data_dict.items():
         sum_items = 0
+        date = key.strftime('%Y-%m-%d')
         for item in value:
             sum_items += item
-        print(f'{key}: R$ {sum_items:,.2f}')
+        print(f'{date} | R$ {sum_items:8,.2f} | R$ {sum_items - total_inv:7,.2f} |')
 
 def welcome():
     print("Show portfolio, input 'show' or 'h'")
