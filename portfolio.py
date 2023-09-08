@@ -78,7 +78,7 @@ def track_portfolio_value(stock_dict):
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
-    print("__Stock___|___Avg____|_Current__|__Delta1__|__Delta2__|___Delta3___|")
+    print("__Stock___|___Avg____|_Current__|_Volume(c)__|__Delta1__|__Delta2__|___Delta3___|")
     for stock, value in stock_dict.items():
         average = calculate_average(value[0], value[1])
         current = data_dict[stock]
@@ -87,7 +87,8 @@ def track_portfolio_value(stock_dict):
         delta2 = delta2 * 100
         delta3 = current * value[0]
         delta3 -= value[1]
-        print(f'{stock:9} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {delta1:5.2f} | {delta2:6.2f}%  | R$ {delta3:7.2f} |')
+        current_volume = current * value[0]
+        print(f'{stock:9} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {current_volume:8,.2f}| R$ {delta1:5.2f} | {delta2:6.2f}%  | R$ {delta3:7.2f} |')
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
