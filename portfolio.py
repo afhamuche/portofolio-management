@@ -26,7 +26,7 @@ def track_stock_price(stock_dict):
         var = variation(current, past)
         beta = var / ibov_var
         delta = current - past
-        print(f'{stock_symbol:9} | R$ {current:5.2f} | R$ {past:5.2f} | R$ {delta:5.2f} | {var:5.2f}% | {beta:5.2f} |')
+        print(f'{stock_symbol:9} | R$ {current:5.2f} | R$ {past:5.2f} | R$ {delta:5.2f} | {var:5.2f}% | {beta:6.2f} |')
 
         port_var += var
 
@@ -238,12 +238,35 @@ def portfolio_ratios(stock_dict):
         except Exception as e:
             continue
 
+def portfolio_history(stock_dict):
+
+    p = input('\nInput period, e.g. "3d": ')
+    tickers = ' '.join(stock_dict.keys())
+
+    tickers = yf.Tickers(tickers)
+    hist = tickers.history(period=p)
+    closes = hist['Close']
+
+    data_dict = {}
+    for index, row in closes.iterrows():
+        portfolio = []
+        for column_name, value in row.items():
+            portfolio.append(round(stock_dict[column_name][0] * value, 2))
+        data_dict[index] = portfolio
+
+    for key, value in data_dict.items():
+        sum_items = 0
+        for item in value:
+            sum_items += item
+        print(f'{key}: R$ {sum_items:,.2f}')
+
 def welcome():
     print("Show portfolio, input 'show' or 'h'")
     print("Track Beta value, input 'beta' or 'b'")
     print("Track portfolio value, input 'portfolio' or 'p'")
     print("Track portfolio variation, input 'variation' or 'v'")
     print("Track portfolio statistics, input 'stats' or 't'")
+    print("Track portfolio history, input 'phist' or 'y'")
     print("Portfolio shares market capitalization info, input 'info' or 'i'")
     print("Track stocks ratio, input 'ratio' or 'r'\n")
 
@@ -267,6 +290,10 @@ if __name__ == "__main__":
 
         if option == 'beta' or option == 'b':
             track_stock_price(stock_dict)
+            input('\nPress [Enter]')
+
+        elif option == 'phist' or option == 'y':
+            portfolio_history(stock_dict)
             input('\nPress [Enter]')
 
         elif option == 'variation' or option == 'v':
