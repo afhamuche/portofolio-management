@@ -32,10 +32,10 @@ def track_stock_price(stock_dict):
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
-    port_var = port_var / len(stock_dict)\
+    port_var = port_var / len(stock_dict)
 
     print(f'Portfolio variation = {port_var:.2f}%')
-    print(f'IBOV variatio = {ibov_var:.2f}%')
+    print(f'IBOV variation = {ibov_var:.2f}%')
     print(f'Beta (Port/IBOV) = {port_var / ibov_var:.2f}')
 
 def total_invested(stock_dict):
@@ -256,13 +256,16 @@ def portfolio_history(stock_dict):
             portfolio.append(round(stock_dict[column_name][0] * value, 2))
         data_dict[index] = portfolio
 
-    print('Date_______|___value_____|__diff______|')
+    print('Date_______|___value_____|__delta1____|__delta2_|')
     for key, value in data_dict.items():
         sum_items = 0
         date = key.strftime('%Y-%m-%d')
         for item in value:
             sum_items += item
-        print(f'{date} | R$ {sum_items:8,.2f} | R$ {sum_items - total_inv:7,.2f} |')
+        delta1 = sum_items - total_inv
+        delta2 = delta1 / total_inv
+        delta2 *= 100
+        print(f'{date} | R$ {sum_items:8,.2f} | R$ {delta1:7,.2f} | {delta2:6.2f}% |')
 
 def welcome():
     print("Show portfolio, input 'show' or 'h'")
