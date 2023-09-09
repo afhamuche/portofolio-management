@@ -17,7 +17,7 @@ def track_stock_price(stock_dict):
     ibov_var = variation(hist['Close'].iloc[-1], hist['Close'].iloc[0])
     port_var = 0
 
-    print("__Stock___|_Current__|__Close___|__Delta1__|_Delta2_|__Beta__|")
+    print("\n__Stock___|_Current__|__Close___|__Delta1__|_Delta2_|__Beta__|")
     for stock_symbol in stock_dict.keys():
         stock = yf.Ticker(stock_symbol)
         hist = stock.history(period='2d')
@@ -54,14 +54,19 @@ def track_portfolio_value(stock_dict):
 
     total_delta = 0.0
 
-    print("__Stock___|___Avg____|_Current__|_Volume(c)__|__Delta1__|__Delta2__|___Delta3___|")
+    print("\n__Stock___|___Avg____|_Current__|_Volume(c)__|__Delta1__|__Delta2__|___Delta3___|")
     for stock, value in stock_dict.items():
         ticker = yf.Ticker(stock)
         hist = ticker.history(period='1d')
         average = calculate_average(value[0], value[1])
         current = hist['Close'].iloc[0]
         delta1 = current - average
-        delta2 = delta1 / average
+
+        if average != 0:
+            delta2 = delta1 / average
+        else:
+            delta2 = 0
+
         delta2 *= 100
         delta3 = current * value[0]
         delta3 -= value[1]
@@ -78,8 +83,12 @@ def track_portfolio_value(stock_dict):
     total_delta -= total_inv
     print(f"delta1: R$ {total_delta:.2f}")
 
-    total_delta = total_delta / total_inv
-    total_delta = total_delta * 100
+    if total_inv > 0:
+        total_delta = total_delta / total_inv
+    else:
+        total_delta = 0
+
+    total_delta *= 100
     print(f"delta2: {total_delta:.2f}%")
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
@@ -216,7 +225,7 @@ def portfolio_statistics(stock_dict):
         print(f'{stock_symbol:9} | R$ {current:6.2f} | R$ {mean:6.2f} | R$ {sigma:5.2f} | {test:4} | {delta:7.2f}% |')
 
 def portfolio_ratios(stock_dict):
-    print("\n__Stock___|_Current__|_EBITDA_|__ROE___|___ROA__|_Cratio|__50dAvg__|_beta_|")
+    print("\n__Stock___|_Current__|_EBITDA_|__ROE___|___ROA__|_Cratio|__50dAvg__|_beta__|")
     for stock_symbol in stock_dict.keys():
         try:
             stock_ticker = yf.Ticker(stock_symbol)
@@ -228,7 +237,7 @@ def portfolio_ratios(stock_dict):
             cratio = stock['currentRatio']
             fifty = stock['fiftyDayAverage']
             beta = stock['beta']
-            print(f'{stock_symbol:9} | R$ {current:5.2f} | {ebitda:5.2f}% | {roe:5.2f}% | {roa:5.2f}% | {cratio:4.2f}x | R$ {fifty:5.2f} | {beta:4.2f} |')
+            print(f'{stock_symbol:9} | R$ {current:5.2f} | {ebitda:5.2f}% | {roe:5.2f}% | {roa:5.2f}% | {cratio:4.2f}x | R$ {fifty:5.2f} | {beta:5.2f} |')
         except Exception as e:
             continue
 
@@ -262,22 +271,23 @@ def portfolio_history(stock_dict):
         print(f'{date} | R$ {sum_items:8,.2f} | R$ {delta1:7,.2f} | {delta2:6.2f}% |')
 
 def welcome():
-    print("Show portfolio, input 'show' or 'h'")
-    print("Track Beta value, input 'beta' or 'b'")
-    print("Track portfolio value, input 'portfolio' or 'p'")
-    print("Track portfolio variation, input 'variation' or 'v'")
-    print("Track portfolio statistics, input 'stats' or 't'")
-    print("Track portfolio history, input 'phist' or 'y'")
-    print("Portfolio shares market capitalization info, input 'info' or 'i'")
-    print("Track stocks ratio, input 'ratio' or 'r'\n")
+    print("Show portfolio \t\t\t\tinput 'show' or 'h'")
+    print("Track Beta value \t\t\tinput 'beta' or 'b'")
+    print("Track portfolio value \t\t\tinput 'portfolio' or 'p'")
+    print("Track portfolio variation \t\tinput 'variation' or 'v'")
+    print("Track portfolio statistics \t\tinput 'stats' or 't'")
+    print("Track portfolio history \t\tinput 'phist' or 'y'")
+    print("Portfolio market capitalization info \tinput 'info' or 'i'")
+    #print("Portfolio target\t\t\tinput 'time' or 'm'")
+    print("Track stocks ratio \t\t\tinput 'ratio' or 'r'\n")
 
-    print("To lookup individual stock 1mo history, input 'history' or 'o'\n")
+    print("To lookup a stock 1mo history\t\tinput 'history' or 'o'\n")
 
-    print("Edit stock list, input 'edit' or 'e'")
-    print("Load stock list, input 'load' or 'l'")
-    print("Save stock list, input 'save' or 's'\n")
+    print("Edit stock list\t\t\tinput 'edit' or 'e'")
+    print("Load stock list\t\t\tinput 'load' or 'l'")
+    print("Save stock list\t\t\tinput 'save' or 's'\n")
 
-    print("To exit, input 'exit' or 'x'")
+    print("To exit\t\t\t\tinput 'exit' or 'x'")
 
 if __name__ == "__main__":
 
@@ -328,12 +338,12 @@ if __name__ == "__main__":
                 input('\nPress [Enter]')
 
             elif option == 'history' or option == 'o':
-                stock = input('Input stock ticker to look up in YFinance: ')
+                stock = input('\nInput stock ticker to look up in YFinance: ')
                 show_stock_history(stock)
                 input('\nPress [Enter]')
 
             elif option == 'load' or option == 'l':
-                file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
+                file_name = input('\nTo load a portfolio, have your .json in the same path as your script.\nInput file name: ')
                 if os.path.isfile(file_name):
                     with open(file_name, 'r') as json_file:
                         stock_dict = json.load(json_file)
