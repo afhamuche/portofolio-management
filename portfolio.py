@@ -52,45 +52,38 @@ def calculate_average(stock_qty, volume):
 
 def track_portfolio_value(stock_dict):
 
-    total_inv = total_invested(stock_dict)
-    print(f'\nTotal invested is R$ {total_inv:,.2f}')
-
     total_delta = 0.0
-    data_dict = {}
 
-    for stock_symbol, stock_value in stock_dict.items():
-        stock = yf.Ticker(stock_symbol)
-        stock_data = stock.history(period="1d")
-        current_price = stock_data["Close"].iloc[0]
-        total_delta += stock_value[0] * current_price
-        data_dict.update({stock_symbol: current_price})
+    print("__Stock___|___Avg____|_Current__|_Volume(c)__|__Delta1__|__Delta2__|___Delta3___|")
+    for stock, value in stock_dict.items():
+        ticker = yf.Ticker(stock)
+        hist = ticker.history(period='1d')
+        average = calculate_average(value[0], value[1])
+        current = hist['Close'].iloc[0]
+        delta1 = current - average
+        delta2 = delta1 / average
+        delta2 *= 100
+        delta3 = current * value[0]
+        delta3 -= value[1]
+        current_volume = current * value[0]
+        total_delta += value[0] * current
+        print(f'{stock:9} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {current_volume:8,.2f}| R$ {delta1:5.2f} | {delta2:6.2f}%  | R$ {delta3:7.2f} |')
 
-    print(f'Current investment is R$ {total_delta:,.2f}')
+    print ('\n- - - - - - - - - - - - - - - - - - - - \n')
+
+    total_inv = total_invested(stock_dict)
+    print(f'Total invested is R$ {total_inv:,.2f}')
+    print(f'Portfolio value is R$ {total_delta:,.2f}')
 
     total_delta -= total_inv
-
     print(f"delta1: R$ {total_delta:.2f}")
 
     total_delta = total_delta / total_inv
     total_delta = total_delta * 100
-
-    print(f"delta2: {total_delta:.2f}%\n")
-
-    print ('\n- - - - - - - - - - - - - - - - - - - - \n')
-
-    print("__Stock___|___Avg____|_Current__|_Volume(c)__|__Delta1__|__Delta2__|___Delta3___|")
-    for stock, value in stock_dict.items():
-        average = calculate_average(value[0], value[1])
-        current = data_dict[stock]
-        delta1 = current - average
-        delta2 = delta1 / average
-        delta2 = delta2 * 100
-        delta3 = current * value[0]
-        delta3 -= value[1]
-        current_volume = current * value[0]
-        print(f'{stock:9} | R$ {average:5.2f} | R$ {current:5.2f} | R$ {current_volume:8,.2f}| R$ {delta1:5.2f} | {delta2:6.2f}%  | R$ {delta3:7.2f} |')
+    print(f"delta2: {total_delta:.2f}%")
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
+
 
 def show_portfolio(stock_dict):
     print("__Stock___|__Qty._|__Volume___|___Avg____|")
@@ -107,7 +100,7 @@ def show_stock_info(stock_dict):
         stock_data = stock.get_shares_full(start="2023-01-01", end=None)
         shares = stock_data.iloc[-1]
         market = shares * current_price
-        print(f"{stock_symbol:9} | {shares:11,d} | R$ {market:,.2f} | R$ {current_price:5.2f} |")
+        print(f"{stock_symbol:9} | {shares:11,d} | R$ {market:16,.2f} | R$ {current_price:5.2f} |")
 
 def edit_selection(stock_dict):
     while True:
@@ -291,74 +284,79 @@ if __name__ == "__main__":
     option = 'a'
 
     while option != 'exit':
-        os.system('clear')
-        welcome()
+        try:
+            os.system('clear')
+            welcome()
 
-        option = input("\nInput option: ")
+            option = input("\nInput option: ")
 
-        if option == 'beta' or option == 'b':
-            track_stock_price(stock_dict)
-            input('\nPress [Enter]')
+            if option == 'beta' or option == 'b':
+                track_stock_price(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'phist' or option == 'y':
-            portfolio_history(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'phist' or option == 'y':
+                portfolio_history(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'variation' or option == 'v':
-            portfolio_variation(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'variation' or option == 'v':
+                portfolio_variation(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'ratio' or option == 'r':
-            portfolio_ratios(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'ratio' or option == 'r':
+                portfolio_ratios(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'stats' or option == 't':
-            portfolio_statistics(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'stats' or option == 't':
+                portfolio_statistics(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'info' or option == 'i':
-            show_stock_info(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'info' or option == 'i':
+                show_stock_info(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'portfolio' or option == 'p':
-            track_portfolio_value(stock_dict)
-            show_portfolio(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'portfolio' or option == 'p':
+                track_portfolio_value(stock_dict)
+                show_portfolio(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'exit' or option == 'x':
-            print("Thanks!")
-            break
+            elif option == 'exit' or option == 'x':
+                print("Thanks!")
+                break
 
-        elif option == 'show' or option == 'h':
-            show_portfolio(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'show' or option == 'h':
+                show_portfolio(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'history' or option == 'o':
-            stock = input('Input stock ticker to look up in YFinance: ')
-            show_stock_history(stock)
-            input('\nPress [Enter]')
+            elif option == 'history' or option == 'o':
+                stock = input('Input stock ticker to look up in YFinance: ')
+                show_stock_history(stock)
+                input('\nPress [Enter]')
 
-        elif option == 'load' or option == 'l':
-            file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
-            if os.path.isfile(file_name):
-                with open(file_name, 'r') as json_file:
-                    stock_dict = json.load(json_file)
-                print(f'\nLoaded file "{file_name}".')
+            elif option == 'load' or option == 'l':
+                file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
+                if os.path.isfile(file_name):
+                    with open(file_name, 'r') as json_file:
+                        stock_dict = json.load(json_file)
+                    print(f'\nLoaded file "{file_name}".')
+                else:
+                    print(f'\nFile "{file_name}" does not exist.')
+                input('\nPress [Enter]')
+
+            elif option == 'save' or option == 's':
+                file_name = input('\nInput save as filename: ')
+                if file_name.find('.json') == -1:
+                    file_name += '.json'
+                with open(file_name, 'w') as json_file:
+                    json.dump(stock_dict, json_file)
+                print(f'\nSaved file "{file_name}" in current directory.')
+                input('\nPress [Enter]')
+
+            elif option == 'edit' or option == 'e':
+                edit_selection(stock_dict)
+
             else:
-                print(f'\nFile "{file_name}" does not exist.')
-            input('\nPress [Enter]')
+                option = input("\nIncorrect option.")
 
-        elif option == 'save' or option == 's':
-            file_name = input('\nInput save as filename: ')
-            if file_name.find('.json') == -1:
-                file_name += '.json'
-            with open(file_name, 'w') as json_file:
-                json.dump(stock_dict, json_file)
-            print(f'\nSaved file "{file_name}" in current directory.')
-            input('\nPress [Enter]')
-
-        elif option == 'edit' or option == 'e':
-            edit_selection(stock_dict)
-
-        else:
-            option = input("\nIncorrect option.")
+        except Exception as e:
+            input('Exception caught, did you load a .json? [Enter]')
+            continue
