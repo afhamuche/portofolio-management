@@ -10,6 +10,18 @@ stock_dict = {}
 
 ibovespa_symbol = "^BVSP"
 
+def near_time_portfolio(stock_dict):
+    option = ''
+    while option != 'q':
+        os.system('clear')
+        for stock_symbol in stock_dict.keys():
+            stock = yf.Ticker(stock_symbol)
+            hist = stock.history(period='1d')
+            df = hist[['Open', 'High', 'Low', 'Close', 'Volume']]
+            df.index.name = stock_symbol
+            print(df)
+        option = input("\n[Enter] to continue.\n'q' to exit.\nInput: ")
+
 def track_stock_price(stock_dict):
 
     stock = yf.Ticker(ibovespa_symbol)
@@ -317,23 +329,24 @@ def save_portfolio(stock_dict):
     print(f'\nSaved file "{file_name}" in current directory.')
 
 def welcome():
-    print("Show portfolio \t\t\t\tinput 'show' or 'h'")
+    print("Last portfolio prices \t\t\tinput 'last' or 'a'")
     print("Track Beta value \t\t\tinput 'beta' or 'b'")
-    print("Track portfolio value \t\t\tinput 'portfolio' or 'p'")
-    print("Track portfolio variation \t\tinput 'variation' or 'v'")
-    print("Track portfolio statistics \t\tinput 'stats' or 't'")
-    print("Track portfolio history \t\tinput 'phist' or 'y'")
+    print("Show portfolio \t\t\t\tinput 'show' or 'h'")
     print("Portfolio market capitalization info \tinput 'info' or 'i'")
     print("Portfolio future value\t\t\tinput 'time' or 'm'")
-    print("Track stocks ratio \t\t\tinput 'ratio' or 'r'\n")
-
-    print("To lookup a stock 1mo history\t\tinput 'history' or 'o'\n")
-
+    print("Track portfolio value \t\t\tinput 'portfolio' or 'p'")
+    print("Track stocks ratio \t\t\tinput 'ratio' or 'r'")
+    print("Track portfolio statistics \t\tinput 'stats' or 't'")
+    print("Track portfolio variation \t\tinput 'variation' or 'v'")
+    print("Track portfolio history \t\tinput 'phist' or 'y'")
+    print()
+    print("To lookup a stock 1mo history\t\tinput 'history' or 'o'")
+    print()
     print("Edit stock list\t\t\tinput 'edit' or 'e'")
     print("Load stock list\t\t\tinput 'load' or 'l'")
     print("Save stock list\t\t\tinput 'save' or 's'\n")
 
-    print("To exit\t\t\t\tinput 'exit' or 'x'")
+    print("To exit\t\t\t\tinput 'exit' or 'q'")
 
 if __name__ == "__main__":
 
@@ -355,6 +368,9 @@ if __name__ == "__main__":
             elif option == 'time' or option == 'm':
                 portfolio_time(stock_dict)
                 input('\nPress [Enter]')
+
+            elif option == 'last' or option == 'a':
+                near_time_portfolio(stock_dict)
 
             elif option == 'phist' or option == 'y':
                 portfolio_history(stock_dict)
@@ -381,7 +397,7 @@ if __name__ == "__main__":
                 show_portfolio(stock_dict)
                 input('\nPress [Enter]')
 
-            elif option == 'exit' or option == 'x':
+            elif option == 'quit' or option == 'q':
                 print("Thanks!")
                 break
 
@@ -406,7 +422,7 @@ if __name__ == "__main__":
                 edit_selection(stock_dict)
 
             else:
-                option = input("\nIncorrect option.")
+                input("\nIncorrect option. [Enter]")
         except Exception as e:
             input('\n\nException caught\n\n[Enter]')
             continue
