@@ -270,6 +270,29 @@ def portfolio_history(stock_dict):
         delta2 *= 100
         print(f'{date} | R$ {sum_items:8,.2f} | R$ {delta1:7,.2f} | {delta2:6.2f}% |')
 
+def portfolio_time(stock_dict):
+    years = int(input('\nInput number of years: '))
+    interest = float(input('Input interest rate as a decimal: '))
+    tmp_list = '\t'.join(map(str, range(years + 1)))
+    print(f'Stock_____|\t{tmp_list}')
+    np_array = np.empty(years + 1)
+
+    for stock, value in stock_dict.items():
+        tmp_list = [round(value[1], 2)]
+        tmp_list = future(tmp_list, value[1], interest, years)
+        np_array = np.vstack((np_array, np.array(tmp_list)))
+        tmp_list = '\t'.join(map(str, tmp_list))
+        print(f'{stock:9} |\t{tmp_list}')
+
+def future(alist, present, i, t):
+    if t == 0:
+        return alist
+    else:
+        fv = 1 + i
+        present *= fv
+        alist.append(round(present, 2))
+        return future(alist, present, i, t-1)
+
 def welcome():
     print("Show portfolio \t\t\t\tinput 'show' or 'h'")
     print("Track Beta value \t\t\tinput 'beta' or 'b'")
@@ -278,7 +301,7 @@ def welcome():
     print("Track portfolio statistics \t\tinput 'stats' or 't'")
     print("Track portfolio history \t\tinput 'phist' or 'y'")
     print("Portfolio market capitalization info \tinput 'info' or 'i'")
-    #print("Portfolio target\t\t\tinput 'time' or 'm'")
+    print("Portfolio future value\t\t\tinput 'time' or 'm'")
     print("Track stocks ratio \t\t\tinput 'ratio' or 'r'\n")
 
     print("To lookup a stock 1mo history\t\tinput 'history' or 'o'\n")
@@ -302,6 +325,10 @@ if __name__ == "__main__":
 
             if option == 'beta' or option == 'b':
                 track_stock_price(stock_dict)
+                input('\nPress [Enter]')
+
+            elif option == 'time' or option == 'm':
+                portfolio_time(stock_dict)
                 input('\nPress [Enter]')
 
             elif option == 'phist' or option == 'y':
@@ -343,7 +370,7 @@ if __name__ == "__main__":
                 input('\nPress [Enter]')
 
             elif option == 'load' or option == 'l':
-                file_name = input('\nTo load a portfolio, have your .json in the same path as your script.\nInput file name: ')
+                file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
                 if os.path.isfile(file_name):
                     with open(file_name, 'r') as json_file:
                         stock_dict = json.load(json_file)
