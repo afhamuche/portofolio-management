@@ -4,7 +4,6 @@ import yfinance as yf
 import time
 import os
 import json
-import numpy as np
 import pandas as pd
 
 stock_dict = {}
@@ -217,8 +216,8 @@ def portfolio_statistics(stock_dict):
         ystock = yf.Ticker(stock_symbol)
         hist = ystock.history(period='2mo')
         current = hist['Close'].iloc[-1]
-        mean = np.mean(hist['Close'].iloc[:])
-        sigma = np.std(hist['Close'].iloc[:])
+        mean = hist['Close'].iloc[:].mean()
+        sigma = hist['Close'].iloc[:].std()
         test = current - mean
         delta = test / sigma
         delta = delta * 100
@@ -296,6 +295,26 @@ def future(alist, present, i, t):
         present *= fv
         return future(alist, present, i, t-1)
 
+def load_portfolio():
+    file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
+
+    if os.path.isfile(file_name):
+        with open(file_name, 'r') as json_file:
+            stock_dict = json.load(json_file)
+        print(f'\nLoaded file "{file_name}".')
+        return stock_dict
+    else:
+        print(f'\nFile "{file_name}" does not exist.\nLoaded empty portfolio')
+        return {}
+
+def save_portfolio(stock_dict):
+    file_name = input('\nInput save as filename: ')
+    if file_name.find('.json') == -1:
+        file_name += '.json'
+    with open(file_name, 'w') as json_file:
+        json.dump(stock_dict, json_file)
+    print(f'\nSaved file "{file_name}" in current directory.')
+
 def welcome():
     print("Show portfolio \t\t\t\tinput 'show' or 'h'")
     print("Track Beta value \t\t\tinput 'beta' or 'b'")
@@ -318,6 +337,8 @@ def welcome():
 if __name__ == "__main__":
 
     option = 'a'
+    stock_dict = load_portfolio()
+    input('\nPress [Enter]')
 
     while option != 'exit':
         os.system('clear')
@@ -372,22 +393,11 @@ if __name__ == "__main__":
             input('\nPress [Enter]')
 
         elif option == 'load' or option == 'l':
-            file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
-            if os.path.isfile(file_name):
-                with open(file_name, 'r') as json_file:
-                    stock_dict = json.load(json_file)
-                print(f'\nLoaded file "{file_name}".')
-            else:
-                print(f'\nFile "{file_name}" does not exist.')
+            stock_dict = load_portfolio()
             input('\nPress [Enter]')
 
         elif option == 'save' or option == 's':
-            file_name = input('\nInput save as filename: ')
-            if file_name.find('.json') == -1:
-                file_name += '.json'
-            with open(file_name, 'w') as json_file:
-                json.dump(stock_dict, json_file)
-            print(f'\nSaved file "{file_name}" in current directory.')
+            save_portfolio(stock_dict)
             input('\nPress [Enter]')
 
         elif option == 'edit' or option == 'e':
