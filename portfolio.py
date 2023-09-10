@@ -283,6 +283,7 @@ def portfolio_time(stock_dict):
 
     df = pd.DataFrame(data, columns=columns, index=index)
     df.loc['Total'] = df[:].sum()
+    print()
     print(df)
 
 
@@ -341,67 +342,71 @@ if __name__ == "__main__":
     input('\nPress [Enter]')
 
     while option != 'exit':
-        os.system('clear')
-        welcome()
+        try:
+            os.system('clear')
+            welcome()
 
-        option = input("\nInput option: ")
+            option = input("\nInput option: ")
 
-        if option == 'beta' or option == 'b':
-            track_stock_price(stock_dict)
-            input('\nPress [Enter]')
+            if option == 'beta' or option == 'b':
+                track_stock_price(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'time' or option == 'm':
-            portfolio_time(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'time' or option == 'm':
+                portfolio_time(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'phist' or option == 'y':
-            portfolio_history(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'phist' or option == 'y':
+                portfolio_history(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'variation' or option == 'v':
-            portfolio_variation(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'variation' or option == 'v':
+                portfolio_variation(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'ratio' or option == 'r':
-            portfolio_ratios(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'ratio' or option == 'r':
+                portfolio_ratios(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'stats' or option == 't':
-            portfolio_statistics(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'stats' or option == 't':
+                portfolio_statistics(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'info' or option == 'i':
-            show_stock_info(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'info' or option == 'i':
+                show_stock_info(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'portfolio' or option == 'p':
-            track_portfolio_value(stock_dict)
-            show_portfolio(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'portfolio' or option == 'p':
+                track_portfolio_value(stock_dict)
+                show_portfolio(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'exit' or option == 'x':
-            print("Thanks!")
-            break
+            elif option == 'exit' or option == 'x':
+                print("Thanks!")
+                break
 
-        elif option == 'show' or option == 'h':
-            show_portfolio(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'show' or option == 'h':
+                show_portfolio(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'history' or option == 'o':
-            stock = input('\nInput stock ticker to look up in YFinance: ')
-            show_stock_history(stock)
-            input('\nPress [Enter]')
+            elif option == 'history' or option == 'o':
+                stock = input('\nInput stock ticker to look up in YFinance: ')
+                show_stock_history(stock)
+                input('\nPress [Enter]')
 
-        elif option == 'load' or option == 'l':
-            stock_dict = load_portfolio()
-            input('\nPress [Enter]')
+            elif option == 'load' or option == 'l':
+                stock_dict = load_portfolio()
+                input('\nPress [Enter]')
 
-        elif option == 'save' or option == 's':
-            save_portfolio(stock_dict)
-            input('\nPress [Enter]')
+            elif option == 'save' or option == 's':
+                save_portfolio(stock_dict)
+                input('\nPress [Enter]')
 
-        elif option == 'edit' or option == 'e':
-            edit_selection(stock_dict)
+            elif option == 'edit' or option == 'e':
+                edit_selection(stock_dict)
 
-        else:
-            option = input("\nIncorrect option.")
+            else:
+                option = input("\nIncorrect option.")
+        except Exception as e:
+            input('\n\nException caught\n\n[Enter]')
+            continue
