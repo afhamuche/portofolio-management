@@ -275,12 +275,10 @@ def portfolio_time(stock_dict):
     interest = float(input('Input interest rate as a decimal: '))
     tmp_list = '\t'.join(map(str, range(years + 1)))
     print(f'Stock_____|\t{tmp_list}')
-    np_array = np.empty(years + 1)
 
     for stock, value in stock_dict.items():
         tmp_list = [round(value[1], 2)]
         tmp_list = future(tmp_list, value[1], interest, years)
-        np_array = np.vstack((np_array, np.array(tmp_list)))
         tmp_list = '\t'.join(map(str, tmp_list))
         print(f'{stock:9} |\t{tmp_list}')
 
