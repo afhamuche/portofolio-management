@@ -5,6 +5,7 @@ import time
 import os
 import json
 import numpy as np
+import pandas as pd
 
 stock_dict = {}
 
@@ -273,22 +274,26 @@ def portfolio_history(stock_dict):
 def portfolio_time(stock_dict):
     years = int(input('\nInput number of years: '))
     interest = float(input('Input interest rate as a decimal: '))
-    tmp_list = '\t'.join(map(str, range(years + 1)))
-    print(f'Stock_____|\t{tmp_list}')
+    columns = range(years + 1)
+    data = []
+    index = []
 
     for stock, value in stock_dict.items():
-        tmp_list = [round(value[1], 2)]
-        tmp_list = future(tmp_list, value[1], interest, years)
-        tmp_list = '\t'.join(map(str, tmp_list))
-        print(f'{stock:9} |\t{tmp_list}')
+        data.append(future([], value[1], interest, years))
+        index.append(stock)
+
+    df = pd.DataFrame(data, columns=columns, index=index)
+    df.loc['Total'] = df[:].sum()
+    print(df)
+
 
 def future(alist, present, i, t):
+    alist.append(round(present, 2))
     if t == 0:
         return alist
     else:
         fv = 1 + i
         present *= fv
-        alist.append(round(present, 2))
         return future(alist, present, i, t-1)
 
 def welcome():
@@ -315,83 +320,78 @@ if __name__ == "__main__":
     option = 'a'
 
     while option != 'exit':
-        try:
-            os.system('clear')
-            welcome()
+        os.system('clear')
+        welcome()
 
-            option = input("\nInput option: ")
+        option = input("\nInput option: ")
 
-            if option == 'beta' or option == 'b':
-                track_stock_price(stock_dict)
-                input('\nPress [Enter]')
+        if option == 'beta' or option == 'b':
+            track_stock_price(stock_dict)
+            input('\nPress [Enter]')
 
-            elif option == 'time' or option == 'm':
-                portfolio_time(stock_dict)
-                input('\nPress [Enter]')
+        elif option == 'time' or option == 'm':
+            portfolio_time(stock_dict)
+            input('\nPress [Enter]')
 
-            elif option == 'phist' or option == 'y':
-                portfolio_history(stock_dict)
-                input('\nPress [Enter]')
+        elif option == 'phist' or option == 'y':
+            portfolio_history(stock_dict)
+            input('\nPress [Enter]')
 
-            elif option == 'variation' or option == 'v':
-                portfolio_variation(stock_dict)
-                input('\nPress [Enter]')
+        elif option == 'variation' or option == 'v':
+            portfolio_variation(stock_dict)
+            input('\nPress [Enter]')
 
-            elif option == 'ratio' or option == 'r':
-                portfolio_ratios(stock_dict)
-                input('\nPress [Enter]')
+        elif option == 'ratio' or option == 'r':
+            portfolio_ratios(stock_dict)
+            input('\nPress [Enter]')
 
-            elif option == 'stats' or option == 't':
-                portfolio_statistics(stock_dict)
-                input('\nPress [Enter]')
+        elif option == 'stats' or option == 't':
+            portfolio_statistics(stock_dict)
+            input('\nPress [Enter]')
 
-            elif option == 'info' or option == 'i':
-                show_stock_info(stock_dict)
-                input('\nPress [Enter]')
+        elif option == 'info' or option == 'i':
+            show_stock_info(stock_dict)
+            input('\nPress [Enter]')
 
-            elif option == 'portfolio' or option == 'p':
-                track_portfolio_value(stock_dict)
-                show_portfolio(stock_dict)
-                input('\nPress [Enter]')
+        elif option == 'portfolio' or option == 'p':
+            track_portfolio_value(stock_dict)
+            show_portfolio(stock_dict)
+            input('\nPress [Enter]')
 
-            elif option == 'exit' or option == 'x':
-                print("Thanks!")
-                break
+        elif option == 'exit' or option == 'x':
+            print("Thanks!")
+            break
 
-            elif option == 'show' or option == 'h':
-                show_portfolio(stock_dict)
-                input('\nPress [Enter]')
+        elif option == 'show' or option == 'h':
+            show_portfolio(stock_dict)
+            input('\nPress [Enter]')
 
-            elif option == 'history' or option == 'o':
-                stock = input('\nInput stock ticker to look up in YFinance: ')
-                show_stock_history(stock)
-                input('\nPress [Enter]')
+        elif option == 'history' or option == 'o':
+            stock = input('\nInput stock ticker to look up in YFinance: ')
+            show_stock_history(stock)
+            input('\nPress [Enter]')
 
-            elif option == 'load' or option == 'l':
-                file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
-                if os.path.isfile(file_name):
-                    with open(file_name, 'r') as json_file:
-                        stock_dict = json.load(json_file)
-                    print(f'\nLoaded file "{file_name}".')
-                else:
-                    print(f'\nFile "{file_name}" does not exist.')
-                input('\nPress [Enter]')
-
-            elif option == 'save' or option == 's':
-                file_name = input('\nInput save as filename: ')
-                if file_name.find('.json') == -1:
-                    file_name += '.json'
-                with open(file_name, 'w') as json_file:
-                    json.dump(stock_dict, json_file)
-                print(f'\nSaved file "{file_name}" in current directory.')
-                input('\nPress [Enter]')
-
-            elif option == 'edit' or option == 'e':
-                edit_selection(stock_dict)
-
+        elif option == 'load' or option == 'l':
+            file_name = input('To load a portfolio, have your .json in the same path as your script.\nInput file name: ')
+            if os.path.isfile(file_name):
+                with open(file_name, 'r') as json_file:
+                    stock_dict = json.load(json_file)
+                print(f'\nLoaded file "{file_name}".')
             else:
-                option = input("\nIncorrect option.")
+                print(f'\nFile "{file_name}" does not exist.')
+            input('\nPress [Enter]')
 
-        except Exception as e:
-            input('Exception caught, did you load a .json? [Enter]')
-            continue
+        elif option == 'save' or option == 's':
+            file_name = input('\nInput save as filename: ')
+            if file_name.find('.json') == -1:
+                file_name += '.json'
+            with open(file_name, 'w') as json_file:
+                json.dump(stock_dict, json_file)
+            print(f'\nSaved file "{file_name}" in current directory.')
+            input('\nPress [Enter]')
+
+        elif option == 'edit' or option == 'e':
+            edit_selection(stock_dict)
+
+        else:
+            option = input("\nIncorrect option.")
