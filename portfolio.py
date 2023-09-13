@@ -5,6 +5,7 @@ import time
 import os
 import json
 import pandas as pd
+from sklearn.linear_model import LinearRegression
 
 stock_dict = {}
 
@@ -271,16 +272,36 @@ def portfolio_history(stock_dict):
             portfolio.append(round(stock_dict[column_name][0] * value, 2))
         data_dict[index] = portfolio
 
+    days = 1
+    df = {'Close': []}
     print('Date_______|___value_____|__delta1____|__delta2_|')
     for key, value in data_dict.items():
+        days += 1
         sum_items = 0
         date = key.strftime('%Y-%m-%d')
         for item in value:
             sum_items += item
+        df['Close'].append(sum_items)
         delta1 = sum_items - total_inv
         delta2 = delta1 / total_inv
         delta2 *= 100
         print(f'{date} | R$ {sum_items:8,.2f} | R$ {delta1:7,.2f} | {delta2:6.2f}% |')
+
+    print ('\n- - - - - - - - - - - - - - - - - - - - \n')
+
+    df = pd.DataFrame(df)
+    df['Days'] = range(1, days)
+    model = LinearRegression()
+    model.fit(df[['Days']], df['Close'])
+    slope = model.coef_[0]
+    intercept = model.intercept_
+    tomorrow = (slope * float(days + 1)) + intercept
+    print(f"{days}-day Linear Regression for portfolio:")
+    print(f"Slope: R$ {slope:.2f} / day")
+    print(f"Intercept: R$ {intercept:.2f}\n")
+    print(f'Forecast tomorrow R$ {tomorrow:.2f}')
+
+
 
 def portfolio_time(stock_dict):
     years = int(input('\nInput number of years: '))
