@@ -355,6 +355,7 @@ def adjusted_portfolio(stock_dict):
     total_value = 0.0
     total_inv = total_invested(stock_dict)
     weights = {}
+    total_delta = 0.0
     for stock, value in stock_dict.items():
         ticker = yf.Ticker(stock)
         hist = ticker.history(period='2d')
@@ -366,12 +367,12 @@ def adjusted_portfolio(stock_dict):
         volume = round(value[0] * current, 2)
         delta = (var * volume) / 100
         delta = round(delta, 2)
+        total_delta += abs(delta)
         weights[stock] = [volume, current, past, delta, var]
 
     total_var = 0.0
     for stock, weight in weights.items():
-        adj_var = weight[3] / total_value
-        adj_var *= 100 * n_stocks
+        adj_var = round((weight[3] * n_stocks)/total_delta, 2)
         total_var += adj_var
         weights[stock].append(round(adj_var, 2))
 
