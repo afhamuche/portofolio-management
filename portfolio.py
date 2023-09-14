@@ -363,15 +363,20 @@ def adjusted_portfolio(stock_dict):
         total_inv += weights[stock][0]
         weights[stock] = [round(value[0] * current, 2), current, past, var]
 
-    print("\nStock___|_Volume(c)_|_Current_|_Past_|__Delta__|_Adj.Delta_|")
     total_var = 0.0
     for stock, weight in weights.items():
         adj_var = weight[0] / total_inv
         adj_var *= weight[3] * 10
         total_var += adj_var
         weights[stock].append(round(adj_var, 2))
-        print(f'{stock:9}: {weights[stock]}')
 
+
+    df = pd.DataFrame(weights)
+    df = df.transpose()
+    df.columns = ['Volume(c) (R$)', 'Current (R$)', 'Past (R$)', 'Delta (%)', 'Adj. Delta (%)']
+
+    print()
+    print(df)
     print(f'\nPortfolio total value: R$ {total_inv:.2f}')
     print(f'Portfolio adjusted variation: {total_var:.2f}%')
 
