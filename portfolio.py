@@ -351,7 +351,9 @@ def save_portfolio(stock_dict):
 
 def adjusted_portfolio(stock_dict):
 
-    total_inv = 0.0
+    n_stocks = len(stock_dict.keys())
+    total_value = 0.0
+    total_inv = total_invested(stock_dict)
     weights = {}
     for stock, value in stock_dict.items():
         ticker = yf.Ticker(stock)
@@ -360,16 +362,17 @@ def adjusted_portfolio(stock_dict):
         past = round(hist['Close'].iloc[0], 2)
         var = variation(current, past)
         weights[stock] = (value[0] * current, var)
-        total_inv += weights[stock][0]
+        total_value += weights[stock][0]
         weights[stock] = [round(value[0] * current, 2), current, past, var]
 
     total_var = 0.0
     for stock, weight in weights.items():
-        adj_var = weight[0] / total_inv
-        adj_var *= weight[3] * 10
+        adj_var = (weight[0] * weight[3]) / total_value
+        adj_var *= 10
         total_var += adj_var
         weights[stock].append(round(adj_var, 2))
 
+    total_var = total_var / n_stocks
 
     df = pd.DataFrame(weights)
     df = df.transpose()
