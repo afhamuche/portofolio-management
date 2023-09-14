@@ -254,7 +254,7 @@ def portfolio_ratios(stock_dict):
         except Exception as e:
             continue
 
-def portfolio_history(stock_dict):
+def portfolio_regression(stock_dict):
 
     p = input('\nInput period, e.g. "3d": ')
     tickers = ' '.join(stock_dict.keys())
@@ -349,17 +349,45 @@ def save_portfolio(stock_dict):
         json.dump(stock_dict, json_file)
     print(f'\nSaved file "{file_name}" in current directory.')
 
+def adjusted_portfolio(stock_dict):
+
+    total_inv = 0.0
+    weights = {}
+    for stock, value in stock_dict.items():
+        ticker = yf.Ticker(stock)
+        hist = ticker.history(period='2d')
+        current = round(hist['Close'].iloc[-1], 2)
+        past = round(hist['Close'].iloc[0], 2)
+        var = variation(current, past)
+        weights[stock] = (value[0] * current, var)
+        total_inv += weights[stock][0]
+        weights[stock] = [round(value[0] * current, 2), current, past, var]
+
+    print("\nStock___|_Volume(c)_|_Current_|_Past_|__Delta__|_Adj.Delta_|")
+    total_var = 0.0
+    for stock, weight in weights.items():
+        adj_var = weight[0] / total_inv
+        adj_var *= weight[3] * 10
+        total_var += adj_var
+        weights[stock].append(round(adj_var, 2))
+        print(f'{stock:9}: {weights[stock]}')
+
+    print(f'\nPortfolio total value: R$ {total_inv:.2f}')
+    print(f'Portfolio adjusted variation: {total_var:.2f}%')
+
 def welcome():
     print("Last portfolio prices \t\t\tinput 'last' or 'a'")
     print("Track Beta value \t\t\tinput 'beta' or 'b'")
+    print("Portfolio regression \t\t\tinput 'reg' or 'g'")
     print("Show portfolio \t\t\t\tinput 'show' or 'h'")
     print("Portfolio market capitalization info \tinput 'info' or 'i'")
+    print("Adjusted portfolio variation\t\tinput 'adjust' or 'j'")
     print("Portfolio future value\t\t\tinput 'time' or 'm'")
     print("Track portfolio value \t\t\tinput 'portfolio' or 'p'")
     print("Track stocks ratio \t\t\tinput 'ratio' or 'r'")
     print("Track portfolio statistics \t\tinput 'stats' or 't'")
     print("Track portfolio variation \t\tinput 'variation' or 'v'")
-    print("Track portfolio history \t\tinput 'phist' or 'y'")
+
     print()
     print("To lookup a stock 1mo history\t\tinput 'history' or 'o'")
     print()
@@ -393,8 +421,12 @@ if __name__ == "__main__":
             elif option == 'last' or option == 'a':
                 near_time_portfolio(stock_dict)
 
-            elif option == 'phist' or option == 'y':
-                portfolio_history(stock_dict)
+            elif option == 'adjust' or option == 'j':
+                adjusted_portfolio(stock_dict)
+                input('\nPress [Enter]')
+
+            elif option == 'reg' or option == 'g':
+                portfolio_regression(stock_dict)
                 input('\nPress [Enter]')
 
             elif option == 'variation' or option == 'v':
