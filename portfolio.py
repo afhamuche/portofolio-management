@@ -295,7 +295,7 @@ def portfolio_regression(stock_dict):
     model.fit(df[['Days']], df['Close'])
     slope = model.coef_[0]
     intercept = model.intercept_
-    tomorrow = (slope * float(days + 1)) + intercept
+    tomorrow = (slope * float(days)) + intercept
     print(f"{days}-day Linear Regression for portfolio:")
     print(f"Slope: R$ {slope:.2f} / day")
     print(f"Intercept: R$ {intercept:.2f}\n")
@@ -349,51 +349,12 @@ def save_portfolio(stock_dict):
         json.dump(stock_dict, json_file)
     print(f'\nSaved file "{file_name}" in current directory.')
 
-def adjusted_portfolio(stock_dict):
-
-    n_stocks = len(stock_dict.keys())
-    total_value = 0.0
-    total_inv = total_invested(stock_dict)
-    weights = {}
-    total_delta = 0.0
-    for stock, value in stock_dict.items():
-        ticker = yf.Ticker(stock)
-        hist = ticker.history(period='2d')
-        current = round(hist['Close'].iloc[-1], 2)
-        past = round(hist['Close'].iloc[0], 2)
-        var = variation(current, past)
-        weights[stock] = (value[0] * current, var)
-        total_value += weights[stock][0]
-        volume = round(value[0] * current, 2)
-        delta = (var * volume) / 100
-        delta = round(delta, 2)
-        total_delta += abs(delta)
-        weights[stock] = [volume, current, past, delta, var]
-
-    total_var = 0.0
-    for stock, weight in weights.items():
-        adj_var = round((weight[3] * n_stocks)/total_delta, 2)
-        total_var += adj_var
-        weights[stock].append(round(adj_var, 2))
-
-    total_var = total_var / n_stocks
-
-    df = pd.DataFrame(weights)
-    df = df.transpose()
-    df.columns = ['Volume(c) (R$)', 'Current (R$)', 'Past (R$)', 'Delta (R$)', 'Delta (%)', 'Adj. Delta (%)']
-
-    print()
-    print(df)
-    print(f'\nPortfolio total value: R$ {total_inv:.2f}')
-    print(f'Portfolio adjusted variation: {total_var:.2f}%')
-
 def welcome():
     print("Last portfolio prices \t\t\tinput 'last' or 'a'")
     print("Track Beta value \t\t\tinput 'beta' or 'b'")
     print("Portfolio regression \t\t\tinput 'reg' or 'g'")
     print("Show portfolio \t\t\t\tinput 'show' or 'h'")
     print("Portfolio market capitalization info \tinput 'info' or 'i'")
-    print("Adjusted portfolio variation\t\tinput 'adjust' or 'j'")
     print("Portfolio future value\t\t\tinput 'time' or 'm'")
     print("Track portfolio value \t\t\tinput 'portfolio' or 'p'")
     print("Track stocks ratio \t\t\tinput 'ratio' or 'r'")
@@ -432,10 +393,6 @@ if __name__ == "__main__":
 
             elif option == 'last' or option == 'a':
                 near_time_portfolio(stock_dict)
-
-            elif option == 'adjust' or option == 'j':
-                adjusted_portfolio(stock_dict)
-                input('\nPress [Enter]')
 
             elif option == 'reg' or option == 'g':
                 portfolio_regression(stock_dict)
