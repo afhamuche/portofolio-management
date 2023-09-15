@@ -108,10 +108,10 @@ def track_portfolio_value(stock_dict):
 
 
 def show_portfolio(stock_dict):
-    print("__Stock___|__Qty._|__Volume___|___Avg____|")
+    print("__Stock___|__Qty._|__Volume_____|___Avg____|")
     for stock, value in stock_dict.items():
         average = calculate_average(value[0], value[1])
-        print(f'{stock:9} | {value[0]:5} | R$ {value[1]:,.2f} | R$ {average:5.2f} |')
+        print(f'{stock:9} | {value[0]:5} | R$ {value[1]:8,.2f} | R$ {average:5.2f} |')
 
 def show_stock_info(stock_dict):
     print("\n__Stock___|____Shares___|_______Mkt.Cap_______|_Current__|")
@@ -274,7 +274,7 @@ def portfolio_regression(stock_dict):
 
     days = 1
     df = {'Close': []}
-    print('Date_______|___value_____|__delta1____|__delta2_|')
+    print('Date_______|____value_____|___delta1____|__delta2_|')
     for key, value in data_dict.items():
         days += 1
         sum_items = 0
@@ -285,7 +285,7 @@ def portfolio_regression(stock_dict):
         delta1 = sum_items - total_inv
         delta2 = delta1 / total_inv
         delta2 *= 100
-        print(f'{date} | R$ {sum_items:8,.2f} | R$ {delta1:7,.2f} | {delta2:6.2f}% |')
+        print(f'{date} | R$ {sum_items:9,.2f} | R$ {delta1:8,.2f} | {delta2:6.2f}% |')
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
