@@ -297,11 +297,9 @@ def portfolio_regression(stock_dict):
     intercept = model.intercept_
     tomorrow = (slope * float(days)) + intercept
     print(f"{days}-day Linear Regression for portfolio:")
-    print(f"Slope: R$ {slope:.2f} / day")
-    print(f"Intercept: R$ {intercept:.2f}\n")
-    print(f'Forecast tomorrow R$ {tomorrow:.2f}')
-
-
+    print(f"Slope: R$ {slope:,.2f} / day")
+    print(f"Intercept: R$ {intercept:,.2f}\n")
+    print(f'Forecast tomorrow R$ {tomorrow:,.2f}')
 
 def portfolio_time(stock_dict):
     years = int(input('\nInput number of years: '))
@@ -318,7 +316,6 @@ def portfolio_time(stock_dict):
     df.loc['Total'] = df[:].sum()
     print()
     print(df)
-
 
 def future(alist, present, i, t):
     alist.append(round(present, 2))
@@ -349,9 +346,79 @@ def save_portfolio(stock_dict):
         json.dump(stock_dict, json_file)
     print(f'\nSaved file "{file_name}" in current directory.')
 
+def portfolio_reg_candles(stock_dict):
+
+    p = input('\nInput period, e.g. "3d": ')
+    tickers = ' '.join(stock_dict.keys())
+
+    tickers = yf.Tickers(tickers)
+    hist = tickers.history(period=p)
+    closes = hist['Close']
+    highs = hist['High']
+    lows = hist['Low']
+
+    closes_dict = {}
+    for index, row in closes.iterrows():
+        closes_dict[index] = 0
+        for column_name, value in row.items():
+            closes_dict[index] += stock_dict[column_name][0] * value
+
+    highs_dict = {}
+    for index, row in highs.iterrows():
+        highs_dict[index] = 0
+        for column_name, value in row.items():
+            highs_dict[index] += stock_dict[column_name][0] * value
+
+
+    lows_dict = {}
+    for index, row in lows.iterrows():
+        lows_dict[index] = 0
+        for column_name, value in row.items():
+            lows_dict[index] += stock_dict[column_name][0] * value
+
+    data_dict = {}
+    days = 1
+    for key, value in closes_dict.items():
+        date = key.strftime('%Y-%m-%d')
+        data_dict[date] = [round(value, 2),
+                           round(highs_dict[key], 2),
+                           round(lows_dict[key], 2),
+                           round(highs_dict[key] - lows_dict[key], 2)]
+        days += 1
+
+    df = pd.DataFrame(data_dict).transpose()
+    df.columns = ['Close (R$)', 'High (R$)', 'Low (R$)', 'Range (R$)']
+
+    print(df)
+
+    print(f"\n{days}-day Linear Regression for portfolio:")
+    df['Days'] = range(1, days)
+
+    model = LinearRegression()
+    model.fit(df[['Days']], df['Close (R$)'])
+    slope = model.coef_[0]
+    intercept = model.intercept_
+    tomorrow = (slope * float(days)) + intercept
+    print(f'Close forecast tomorrow R$ {tomorrow:,.2f}')
+    model = LinearRegression()
+    model.fit(df[['Days']], df['High (R$)'])
+    slope = model.coef_[0]
+    intercept = model.intercept_
+    tomorrow = (slope * float(days)) + intercept
+    print(f'High forecast tomorrow R$ {tomorrow:,.2f}')
+    tmp = tomorrow
+    model = LinearRegression()
+    model.fit(df[['Days']], df['Low (R$)'])
+    slope = model.coef_[0]
+    intercept = model.intercept_
+    tomorrow = (slope * float(days)) + intercept
+    print(f'Low forecast tomorrow R$ {tomorrow:,.2f}')
+    print(f'Range forecast tomorrow R$ {tmp - tomorrow:,.2f}')
+
 def welcome():
     print("Last portfolio prices \t\t\tinput 'last' or 'a'")
     print("Track Beta value \t\t\tinput 'beta' or 'b'")
+    print("Portfolio candles reg\t\t\tinput 'candles' or 'c'")
     print("Portfolio regression \t\t\tinput 'reg' or 'g'")
     print("Show portfolio \t\t\t\tinput 'show' or 'h'")
     print("Portfolio market capitalization info \tinput 'info' or 'i'")
@@ -389,6 +456,10 @@ if __name__ == "__main__":
 
             elif option == 'time' or option == 'm':
                 portfolio_time(stock_dict)
+                input('\nPress [Enter]')
+
+            elif option == 'candles' or option == 'c':
+                portfolio_reg_candles(stock_dict)
                 input('\nPress [Enter]')
 
             elif option == 'last' or option == 'a':
