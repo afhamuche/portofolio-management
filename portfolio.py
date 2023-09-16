@@ -346,35 +346,25 @@ def save_portfolio(stock_dict):
         json.dump(stock_dict, json_file)
     print(f'\nSaved file "{file_name}" in current directory.')
 
-def portfolio_reg_candles(stock_dict):
 
+def pd2dict_sum(df, stock_dict):
+    data_dict = {}
+    for index, row in df.iterrows():
+        data_dict[index] = 0
+        for column_name, value in row.items():
+            data_dict[index] += stock_dict[column_name][0] * value
+    return data_dict
+
+def portfolio_reg_candles(stock_dict):
     p = input('\nInput period, e.g. "3d": ')
     tickers = ' '.join(stock_dict.keys())
 
     tickers = yf.Tickers(tickers)
     hist = tickers.history(period=p)
-    closes = hist['Close']
-    highs = hist['High']
-    lows = hist['Low']
 
-    closes_dict = {}
-    for index, row in closes.iterrows():
-        closes_dict[index] = 0
-        for column_name, value in row.items():
-            closes_dict[index] += stock_dict[column_name][0] * value
-
-    highs_dict = {}
-    for index, row in highs.iterrows():
-        highs_dict[index] = 0
-        for column_name, value in row.items():
-            highs_dict[index] += stock_dict[column_name][0] * value
-
-
-    lows_dict = {}
-    for index, row in lows.iterrows():
-        lows_dict[index] = 0
-        for column_name, value in row.items():
-            lows_dict[index] += stock_dict[column_name][0] * value
+    closes_dict = pd2dict_sum(hist['Close'], stock_dict)
+    highs_dict = pd2dict_sum(hist['High'], stock_dict)
+    lows_dict = pd2dict_sum(hist['Low'], stock_dict)
 
     data_dict = {}
     days = 1
@@ -387,33 +377,22 @@ def portfolio_reg_candles(stock_dict):
         days += 1
 
     df = pd.DataFrame(data_dict).transpose()
-    df.columns = ['Close (R$)', 'High (R$)', 'Low (R$)', 'Range (R$)']
+
+    columns = ['Close', 'High', 'Low', 'Range']
+    df.columns = columns
 
     print(df)
 
     print(f"\n{days}-day Linear Regression for portfolio:")
     df['Days'] = range(1, days)
 
-    model = LinearRegression()
-    model.fit(df[['Days']], df['Close (R$)'])
-    slope = model.coef_[0]
-    intercept = model.intercept_
-    tomorrow = (slope * float(days)) + intercept
-    print(f'Close forecast tomorrow R$ {tomorrow:,.2f}')
-    model = LinearRegression()
-    model.fit(df[['Days']], df['High (R$)'])
-    slope = model.coef_[0]
-    intercept = model.intercept_
-    tomorrow = (slope * float(days)) + intercept
-    print(f'High forecast tomorrow R$ {tomorrow:,.2f}')
-    tmp = tomorrow
-    model = LinearRegression()
-    model.fit(df[['Days']], df['Low (R$)'])
-    slope = model.coef_[0]
-    intercept = model.intercept_
-    tomorrow = (slope * float(days)) + intercept
-    print(f'Low forecast tomorrow R$ {tomorrow:,.2f}')
-    print(f'Range forecast tomorrow R$ {tmp - tomorrow:,.2f}')
+    for category in columns:
+        model = LinearRegression()
+        model.fit(df[['Days']], df[category])
+        slope = model.coef_[0]
+        intercept = model.intercept_
+        tomorrow = (slope * float(days)) + intercept
+        print(f'{category} forecast tomorrow R$ {tomorrow:,.2f}')
 
 def welcome():
     print("Last portfolio prices \t\t\tinput 'last' or 'a'")
