@@ -47,9 +47,9 @@ def track_stock_price(stock_dict):
 
     port_var = port_var / len(stock_dict)
 
-    print(f'Portfolio variation = {port_var:.2f}%')
-    print(f'IBOV variation = {ibov_var:.2f}%')
-    print(f'Beta (Port/IBOV) = {port_var / ibov_var:.2f}')
+    print(f'Portfolio variation: {port_var:.2f}%')
+    print(f'IBOV variation: {ibov_var:.2f}%')
+    print(f'Beta (Port/IBOV): {port_var / ibov_var:.2f}')
 
 def total_invested(stock_dict):
     total_sum = 0.0
@@ -386,13 +386,36 @@ def portfolio_reg_candles(stock_dict):
     print(f"\n{days}-day Linear Regression for portfolio:")
     df['Days'] = range(1, days)
 
-    for category in columns:
+    for category in columns[:-1]:
         model = LinearRegression()
         model.fit(df[['Days']], df[category])
         slope = model.coef_[0]
         intercept = model.intercept_
         tomorrow = (slope * float(days)) + intercept
-        print(f'{category} forecast tomorrow R$ {tomorrow:,.2f}')
+        print(f'{category} forecast tomorrow R$ {tomorrow:,.2f} | Slope R$/day {slope:.2f} | Intercept R$ {intercept:,.2f}')
+
+def portfolio_sharpe(stock_dict):
+
+    risk_free = float(input('\nInput period annual risk-free rate: '))
+    tickers = ' '.join(stock_dict.keys())
+    tickers = yf.Tickers(tickers)
+    hist = tickers.history(period='1y')
+
+    data_series = pd.Series(pd2dict_sum(hist['Close'], stock_dict).values())
+    mean_data = data_series.mean()
+    std_data = data_series.std()
+
+    var_change = data_series.pct_change()
+    std_daily = float(var_change.std())
+    mean_daily = float(var_change.mean())
+    sharpe = (mean_daily - risk_free) / std_daily
+
+    print(f'\nStd Daily: {std_daily * 100:.2f}% | R$ {std_data:.2f} |')
+    print(f'Mean Daily: {mean_daily * 100:.2f}% | R$ {mean_data:,.2f} | ')
+    print(f'Risk-free: {risk_free * 100:.2f}%')
+    print(f'\nSharpe Ratio: {sharpe:.2f}')
+    sharpe_annual = sharpe * (252**0.5)
+    print(f'Sharpe Annual: {sharpe_annual:.2f}')
 
 def welcome():
     print("Last portfolio prices \t\t\tinput 'last' or 'a'")
@@ -401,12 +424,12 @@ def welcome():
     print("Portfolio regression \t\t\tinput 'reg' or 'g'")
     print("Show portfolio \t\t\t\tinput 'show' or 'h'")
     print("Portfolio market capitalization info \tinput 'info' or 'i'")
+    print("Portfolio Sharpe ratio\t\t\tinput 'sharpe' or 'j'")
     print("Portfolio future value\t\t\tinput 'time' or 'm'")
     print("Track portfolio value \t\t\tinput 'portfolio' or 'p'")
     print("Track stocks ratio \t\t\tinput 'ratio' or 'r'")
     print("Track portfolio statistics \t\tinput 'stats' or 't'")
     print("Track portfolio variation \t\tinput 'variation' or 'v'")
-
     print()
     print("To lookup a stock 1mo history\t\tinput 'history' or 'o'")
     print()
@@ -456,6 +479,10 @@ if __name__ == "__main__":
                 portfolio_ratios(stock_dict)
                 input('\nPress [Enter]')
 
+            elif option == 'sharpe' or option == 'j':
+                portfolio_sharpe(stock_dict)
+                input('\nPress [Enter]')
+
             elif option == 'stats' or option == 't':
                 portfolio_statistics(stock_dict)
                 input('\nPress [Enter]')
@@ -495,6 +522,8 @@ if __name__ == "__main__":
 
             else:
                 input("\nIncorrect option. [Enter]")
+
         except Exception as e:
+            print(e)
             input('\n\nException caught\n\n[Enter]')
             continue
