@@ -7,10 +7,6 @@ import json
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 
-stock_dict = {}
-
-ibovespa_symbol = "^BVSP"
-
 def near_time_portfolio(stock_dict):
     option = ''
     while option != 'q':
@@ -25,13 +21,15 @@ def near_time_portfolio(stock_dict):
 
 def track_stock_price(stock_dict):
 
+    ibovespa_symbol = "^BVSP"
     stock = yf.Ticker(ibovespa_symbol)
     hist = stock.history(period='2d')
     ibov_var = variation(hist['Close'].iloc[-1], hist['Close'].iloc[0])
-    port_var = 0
+    port_var = 0.0
+    total_inv = total_invested(stock_dict)
 
     print("\n__Stock___|_Current__|__Close___|__Delta1__|_Delta2_|__Beta__|")
-    for stock_symbol in stock_dict.keys():
+    for stock_symbol, value in stock_dict.items():
         stock = yf.Ticker(stock_symbol)
         hist = stock.history(period='2d')
         current = hist['Close'].iloc[-1]
@@ -41,11 +39,15 @@ def track_stock_price(stock_dict):
         delta = current - past
         print(f'{stock_symbol:9} | R$ {current:5.2f} | R$ {past:5.2f} | R$ {delta:5.2f} | {var:5.2f}% | {beta:6.2f} |')
 
+        var = current * value[0]
+        var -= past * value[0]
         port_var += var
+
 
     print ('\n- - - - - - - - - - - - - - - - - - - - \n')
 
-    port_var = port_var / len(stock_dict)
+    port_var = port_var / total_inv
+    port_var *= 100
 
     print(f'Portfolio variation: {port_var:.2f}%')
     print(f'IBOV variation: {ibov_var:.2f}%')
