@@ -26,7 +26,7 @@ def track_stock_price(stock_dict):
     hist = stock.history(period='2d')
     ibov_var = variation(hist['Close'].iloc[-1], hist['Close'].iloc[0])
     port_var = 0.0
-    total_inv = total_invested(stock_dict)
+    total_inv = 0.0
 
     print("\n__Stock___|_Current__|__Close___|__Delta1__|_Delta2_|__Beta__|")
     for stock_symbol, value in stock_dict.items():
@@ -39,6 +39,7 @@ def track_stock_price(stock_dict):
         delta = current - past
         print(f'{stock_symbol:9} | R$ {current:5.2f} | R$ {past:5.2f} | R$ {delta:5.2f} | {var:5.2f}% | {beta:6.2f} |')
 
+        total_inv += past * value[0]
         var = current * value[0]
         var -= past * value[0]
         port_var += var
