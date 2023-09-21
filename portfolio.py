@@ -7,18 +7,6 @@ import json
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 
-def near_time_portfolio(stock_dict):
-    option = ''
-    while option != 'q':
-        os.system('clear')
-        for stock_symbol in stock_dict.keys():
-            stock = yf.Ticker(stock_symbol)
-            hist = stock.history(period='1d')
-            df = hist[['Open', 'High', 'Low', 'Close', 'Volume']]
-            df.index.name = stock_symbol
-            print(df)
-        option = input("\n[Enter] to continue.\n'q' to exit.\nInput: ")
-
 def track_stock_price(stock_dict):
 
     ibovespa_symbol = "^BVSP"
@@ -130,7 +118,7 @@ def show_stock_info(stock_dict):
 def edit_selection(stock_dict):
     while True:
                 os.system('clear')
-                print('new / delete / buy / sell / back\n')
+                print('new / reset / delete / buy / sell / back\n')
                 show_portfolio(stock_dict)
                 option = input('\nInput option: ')
 
@@ -140,8 +128,19 @@ def edit_selection(stock_dict):
                         option = input(f'Delete {stock}? Y/n: ')
                         if option == "Y" or option == 'y':
                             del stock_dict[stock]
-                        print(f'Deleted stock {stock}')
+                            print(f'Deleted stock {stock}')
 
+                    input("\nTo go back to main menu, input 'back'. [Enter]")
+
+                elif option == 'reset':
+                    stock = input('Input stock ticker to reset: ')
+                    if stock in stock_dict:
+                        option = input(f'Reset {stock}? Y/n: ')
+                        if option == 'Y' or option == 'y':
+                            stock_dict[stock] = [0, 0]
+                            print(f'Stock {stock} reset.')
+                    else:
+                        print(f'Stock {stock} not found.')
                     input("\nTo go back to main menu, input 'back'. [Enter]")
 
                 elif option == 'buy':
@@ -156,8 +155,8 @@ def edit_selection(stock_dict):
                             value = stock_dict[stock]
                             buy += value[0]
                             volume += value[1]
-                        stock_dict[stock] = (buy, volume)
                         print(f'Purchased stock {stock}.')
+                        stock_dict[stock] = (buy, volume)
                     input("\nTo go back to main menu, input 'back'. [Enter]")
 
                 elif option == 'sell':
@@ -421,7 +420,6 @@ def portfolio_sharpe(stock_dict):
     print(f'Sharpe Annual: {sharpe_annual:.2f}')
 
 def welcome():
-    print("Last portfolio prices \t\t\tinput 'last' or 'a'")
     print("Track Beta value \t\t\tinput 'beta' or 'b'")
     print("Portfolio candles reg\t\t\tinput 'candles' or 'c'")
     print("Portfolio regression \t\t\tinput 'reg' or 'g'")
@@ -466,9 +464,6 @@ if __name__ == "__main__":
             elif option == 'candles' or option == 'c':
                 portfolio_reg_candles(stock_dict)
                 input('\nPress [Enter]')
-
-            elif option == 'last' or option == 'a':
-                near_time_portfolio(stock_dict)
 
             elif option == 'reg' or option == 'g':
                 portfolio_regression(stock_dict)
