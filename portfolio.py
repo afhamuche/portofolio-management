@@ -118,7 +118,7 @@ def show_stock_info(stock_dict):
 def edit_selection(stock_dict):
     while True:
                 os.system('clear')
-                print('new / reset / delete / buy / sell / back\n')
+                print('new / delete / set / buy / sell / back\n')
                 show_portfolio(stock_dict)
                 option = input('\nInput option: ')
 
@@ -129,16 +129,17 @@ def edit_selection(stock_dict):
                         if option == "Y" or option == 'y':
                             del stock_dict[stock]
                             print(f'Deleted stock {stock}')
-
                     input("\nTo go back to main menu, input 'back'. [Enter]")
 
-                elif option == 'reset':
-                    stock = input('Input stock ticker to reset: ')
+                elif option == 'set':
+                    stock = input('Input stock ticker to set: ')
                     if stock in stock_dict:
-                        option = input(f'Reset {stock}? Y/n: ')
+                        count = int(input('Input for number of stocks: '))
+                        volume = float(input('Input total volume: '))
+                        option = input(f'Set {count} {stock} for R$ {volume}? Y/n: ')
                         if option == 'Y' or option == 'y':
-                            stock_dict[stock] = [0, 0]
-                            print(f'Stock {stock} reset.')
+                            stock_dict[stock] = [count, volume]
+                            print(f'Stock {stock} set.')
                     else:
                         print(f'Stock {stock} not found.')
                     input("\nTo go back to main menu, input 'back'. [Enter]")
@@ -156,7 +157,7 @@ def edit_selection(stock_dict):
                             buy += value[0]
                             volume += value[1]
                         print(f'Purchased stock {stock}.')
-                        stock_dict[stock] = (buy, volume)
+                        stock_dict[stock] = [buy, volume]
                     input("\nTo go back to main menu, input 'back'. [Enter]")
 
                 elif option == 'sell':
@@ -172,7 +173,7 @@ def edit_selection(stock_dict):
                             if value[0] >= sell:
                                 sell = value[0] - sell
                                 volume = value[1] - volume
-                                stock_dict[stock] = (sell, volume)
+                                stock_dict[stock] = [sell, volume]
                                 print(f'Sold stock {stock}.')
                             else:
                                 print("Cannot short stocks.")
