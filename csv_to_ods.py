@@ -4,6 +4,8 @@ import yfinance as yf
 import pyexcel as pe
 import os
 import csv
+from sklearn.linear_model import LinearRegression
+import pandas as pd
 
 def load_portfolio(filename):
     if os.path.isfile(filename):
@@ -12,15 +14,12 @@ def load_portfolio(filename):
             next(reader)
             stock_dict = {}
             for row in reader:
-                #if row[0] == 'Profits':
-                #    profit = [int(row[1], float(row[2])]
-                #else:
                 stock_dict[row[0]] = [int(row[1]), float(row[2])]
         print(f'Loaded {filename} successfully!')
     else:
         print(f'\nFile "{filename}" does not exist.\nLoaded empty portfolio')
         return {}
-    return stock_dict #, profit
+    return stock_dict
 
 def calculate_average(shares, total):
     if shares != 0:
@@ -137,6 +136,51 @@ def to_mkt_cap(stock_dict):
     print('"Mkt Cap" sheet saved')
     return data_sheet
 
+def to_regn_sheet(stock_dict, p='20d'):
+    print('Saving "Regn" sheet...')
+
+    tickers = ' '.join(stock_dict.keys())
+    tickers = yf.Tickers(tickers)
+    hist = tickers.history(period=p)
+    closes = hist['Close']
+    total_inv = total_invested(stock_dict)
+
+    data_dict = {}
+    for index, row in closes.iterrows():
+        sum_items = 0.0
+        for column_name, value in row.items():
+            sum_items += round(stock_dict[column_name][0] * value, 2)
+        data_dict[index] = sum_items
+
+    data_sheet = [['Date', 'Port Value (R$)', 'Delta1 (R$)', 'Delta2 (%)']]
+    days = 1
+    df = {'Close': []}
+    for timestamp, sum_items in data_dict.items():
+        days += 1
+        date = timestamp.strftime('%Y-%m-%d')
+        df['Close'].append(sum_items)
+        delta1 = float(sum_items - total_inv)
+        delta2 = float((100 * delta1) / total_inv)
+
+        data_sheet.append([date, sum_items, delta1, delta2])
+
+    data_sheet.append(['-', '-', '-', '-'])
+
+    df = pd.DataFrame(df)
+    df['Days'] = range(1, days)
+    model = LinearRegression()
+    model.fit(df[['Days']], df['Close'])
+    slope = float(model.coef_[0])
+    intercept = float(model.intercept_)
+    regn = (slope * float(days)) + intercept
+
+    data_sheet.append(['Period (days)', 'Forecast (days)', 'Forecast (R$)', 'Slope (R$/day)', 'Intercept (R$)'])
+
+    data_sheet.append([days-1, days, regn, slope, intercept])
+
+    print('"Regn" sheet saved')
+    return data_sheet
+
 if __name__ == "__main__":
 
     filename = input('To load a portfolio, have your .csv in your working directory. \nInput filename: ')
@@ -148,10 +192,12 @@ if __name__ == "__main__":
     current_beta_sheet = pe.Sheet(to_beta_sheet(stock_dict), name='Beta')
     current_value_sheet = pe.Sheet(to_current_sheet(stock_dict), name='Current')
     mkt_cap_sheet = pe.Sheet(to_mkt_cap(stock_dict), name='Mkt Cap')
+    regn_sheet = pe.Sheet(to_regn_sheet(stock_dict), name='Regn')
 
     pe.save_book_as(bookdict={
         'Stocks': stock_sheet,
         'Beta': current_beta_sheet,
         'Current': current_value_sheet,
         'Mkt Cap': mkt_cap_sheet,
+        'Regn': regn_sheet,
         }, dest_file_name=ods_filename)
