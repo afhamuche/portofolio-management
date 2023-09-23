@@ -44,8 +44,8 @@ def to_beta_sheet(stock_dict):
     print('Saving "Beta" sheet...')
 
     ibovespa_symbol = "^BVSP"
-    stock = yf.Ticker(ibovespa_symbol)
-    hist = stock.history(period='2d')
+    ticker = yf.Ticker(ibovespa_symbol)
+    hist = ticker.history(period='2d')
     ibov_var = variation_delta(hist['Close'].iloc[-1], hist['Close'].iloc[0])
 
     port_var = 0.0
@@ -137,7 +137,7 @@ def to_mkt_cap(stock_dict):
     return data_sheet
 
 def to_regn_sheet(stock_dict, p='20d'):
-    print('Saving "Regn" sheet...')
+    print(f'Saving {p} Regression "Regn" sheet...')
 
     tickers = ' '.join(stock_dict.keys())
     tickers = yf.Tickers(tickers)
@@ -181,6 +181,72 @@ def to_regn_sheet(stock_dict, p='20d'):
     print('"Regn" sheet saved')
     return data_sheet
 
+def to_variation_sheet(stock_dict):
+    print('Saving "Var" sheet...')
+
+    data_sheet = [['Stock', 'Current (R$)', '1day (%)', '7day (%)', '30day (%)', '1year (%)']]
+
+    for stock in stock_dict.keys():
+        ticker = yf.Ticker(stock)
+        hist = ticker.history(period='1y')
+        current = float(hist['Close'].iloc[-1])
+        day1 = variation_delta(current, hist['Close'].iloc[-2])
+        day7 = variation_delta(current, hist['Close'].iloc[-5])
+        day30 = variation_delta(current, hist['Close'].iloc[-22])
+        dayY = variation_delta(current, hist['Close'].iloc[0])
+        data_sheet.append([stock, current, day1, day7, day30, dayY])
+
+    print('"Var" sheet saved')
+    return data_sheet
+
+def to_stats_sheet(stock_dict, p='2mo'):
+    print(f'Saving {p} "Stats" sheet...')
+
+    ibovespa_symbol = "^BVSP"
+    ticker = yf.Ticker(ibovespa_symbol)
+    hist = ticker.history(period=p)
+    ibov_change = hist['Close'].pct_change()
+
+    data_sheet = [['Stock', 'Current (R$)', 'Mean (R$)', 'Std Dev (R$)', 'IBOV Corr']]
+
+    for stock in stock_dict.keys():
+        ticker = yf.Ticker(stock)
+        hist = ticker.history(period=p)
+
+        current = float(hist['Close'].iloc[-1])
+        mean = float(hist['Close'].mean())
+        std_dev = float(hist['Close'].std())
+        stock_change = hist['Close'].pct_change()
+        correlation = float(ibov_change.corr(stock_change))
+
+        data_sheet.append([stock, current, mean, std_dev, correlation])
+
+    print('"Stats" sheet saved')
+    return data_sheet
+
+def future_value(present, i, t, alist=[]):
+    alist.append(round(present, 2))
+    if t == 0:
+        return alist
+    else:
+        fv = 1 + i
+        present *= fv
+        return future_value(present, i, t-1, alist=alist)
+
+def to_time_sheet(stock_dict, years=10):
+    print('Saving "Time" sheet...')
+
+    total_inv = total_invested(stock_dict)
+
+    data_sheet = [['Interest X Years'] + list(range(0, years+1))]
+
+    for i in range(0,10):
+        interest = (1+i) * 0.01
+        data_sheet.append([interest] + future_value(total_inv, interest, years, []))
+
+    print('"Time" sheet saved')
+    return data_sheet
+
 if __name__ == "__main__":
 
     filename = input('To load a portfolio, have your .csv in your working directory. \nInput filename: ')
@@ -193,6 +259,9 @@ if __name__ == "__main__":
     current_value_sheet = pe.Sheet(to_current_sheet(stock_dict), name='Current')
     mkt_cap_sheet = pe.Sheet(to_mkt_cap(stock_dict), name='Mkt Cap')
     regn_sheet = pe.Sheet(to_regn_sheet(stock_dict), name='Regn')
+    variation_sheet = pe.Sheet(to_variation_sheet(stock_dict), name='Var')
+    stats_sheet = pe.Sheet(to_stats_sheet(stock_dict), name='Stats')
+    time_sheet = pe.Sheet(to_time_sheet(stock_dict), name='Time')
 
     pe.save_book_as(bookdict={
         'Stocks': stock_sheet,
@@ -200,4 +269,7 @@ if __name__ == "__main__":
         'Current': current_value_sheet,
         'Mkt Cap': mkt_cap_sheet,
         'Regn': regn_sheet,
+        'Var': variation_sheet,
+        'Stats': stats_sheet,
+        'Time': time_sheet,
         }, dest_file_name=ods_filename)
