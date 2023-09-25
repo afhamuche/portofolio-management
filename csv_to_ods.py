@@ -32,7 +32,6 @@ def to_stock_sheet(stock_dict):
     data_sheet = [['Stock', 'Shares', 'Total (R$)', 'Average (R$)']]
     for key, value in stock_dict.items():
         data_sheet.append([key] + value + [calculate_average(value[0], value[1])])
-    print('"Stock" sheet saved')
     return data_sheet
 
 def variation_delta(current, past):
@@ -46,7 +45,7 @@ def to_beta_sheet(stock_dict):
     ibovespa_symbol = "^BVSP"
     ticker = yf.Ticker(ibovespa_symbol)
     hist = ticker.history(period='2d')
-    ibov_var = variation_delta(hist['Close'].iloc[-1], hist['Close'].iloc[0])
+    ibov_var = round(variation_delta(hist['Close'].iloc[-1], hist['Close'].iloc[0]), 2)
 
     port_var = 0.0
     total_inv = 0.0
@@ -55,10 +54,10 @@ def to_beta_sheet(stock_dict):
     for stock, value in stock_dict.items():
         ticker = yf.Ticker(stock)
         hist = ticker.history(period='2d')
-        current = float(hist['Close'].iloc[-1])
-        yday = float(hist['Close'].iloc[0])
+        current = round(float(hist['Close'].iloc[-1]), 2)
+        yday = round(float(hist['Close'].iloc[0]), 2)
         delta1 = current - yday
-        delta2 = variation_delta(current, yday)
+        delta2 = round(variation_delta(current, yday), 2)
         beta = round(delta2/ibov_var, 2)
 
         data_sheet.append([stock, current, yday, delta1, delta2, beta])
@@ -75,7 +74,6 @@ def to_beta_sheet(stock_dict):
 
     data_sheet.append([port_var, ibov_var, beta])
 
-    print('"Beta" sheet saved')
     return data_sheet
 
 def total_invested(stock_dict):
@@ -87,7 +85,7 @@ def total_invested(stock_dict):
 def to_current_sheet(stock_dict):
     print('Saving "Current" value sheet...')
 
-    data_sheet = [['Stock', 'Shares', 'Current (R$)', 'Total (R$)', 'Delta1 (R$)', 'Delta2 (%)']]
+    data_sheet = [['Stock', 'Shares', 'Average (R$)', 'Current (R$)', 'Total (R$)', 'Delta1 (R$)', 'Delta2 (%)']]
 
     current_value = 0.0
     total_inv = total_invested(stock_dict)
@@ -95,27 +93,26 @@ def to_current_sheet(stock_dict):
     for stock, value in stock_dict.items():
         ticker = yf.Ticker(stock)
         hist = ticker.history(period='1d')
-        current = float(hist['Close'].iloc[0])
-        current_total = value[0] * current
-        delta1 = current_total - value[1]
+        current = round(float(hist['Close'].iloc[0]), 2)
+        current_total = round(value[0] * current, 2)
+        delta1 = round(current_total - value[1], 2)
         if value[1] != 0:
             delta2 = (100 * delta1) / value[1]
             delta2 = round(delta2, 2)
         else:
             delta2 = 0.0
 
-        data_sheet.append([stock, value[0], current, current_total, delta1, delta2])
+        data_sheet.append([stock, value[0], calculate_average(value[0], value[1]), current, current_total, delta1, delta2])
         current_value += current_total
 
-    data_sheet.append(['-', '-', '-', '-', '-', '-'])
+    data_sheet.append(['-', '-', '-', '-', '-', '-', '-'])
     data_sheet.append(['Total Inv (R$)', 'Current Val (R$)', 'Delta1 (R$)', 'Delta2 (%)'])
 
-    delta1 = current_value - total_inv
-    delta2 = (100 * delta1) / total_inv
+    delta1 = round(current_value - total_inv, 2)
+    delta2 = round((100 * delta1) / total_inv, 2)
 
-    data_sheet.append([total_inv, current_value, delta1, delta2])
+    data_sheet.append([round(total_inv, 2), round(current_value, 2), delta1, delta2])
 
-    print('"Current" sheet saved')
     return data_sheet
 
 def to_mkt_cap(stock_dict):
@@ -126,14 +123,13 @@ def to_mkt_cap(stock_dict):
     for stock in stock_dict.keys():
         ticker = yf.Ticker(stock)
         hist = ticker.history(period='1d')
-        current = float(hist['Close'].iloc[0])
+        current = round(float(hist['Close'].iloc[0]), 2)
         shares = ticker.get_shares_full(start='2023-01-01', end=None)
         shares = int(shares.iloc[-1])
-        market = shares * current
+        market = round(shares * current, 2)
 
         data_sheet.append([stock, current, shares, market])
 
-    print('"Mkt Cap" sheet saved')
     return data_sheet
 
 def to_regn_sheet(stock_dict, p='20d'):
@@ -159,8 +155,8 @@ def to_regn_sheet(stock_dict, p='20d'):
         days += 1
         date = timestamp.strftime('%Y-%m-%d')
         df['Close'].append(sum_items)
-        delta1 = float(sum_items - total_inv)
-        delta2 = float((100 * delta1) / total_inv)
+        delta1 = round(float(sum_items - total_inv), 2)
+        delta2 = round(float((100 * delta1) / total_inv), 2)
 
         data_sheet.append([date, sum_items, delta1, delta2])
 
@@ -170,15 +166,13 @@ def to_regn_sheet(stock_dict, p='20d'):
     df['Days'] = range(1, days)
     model = LinearRegression()
     model.fit(df[['Days']], df['Close'])
-    slope = float(model.coef_[0])
-    intercept = float(model.intercept_)
-    regn = (slope * float(days)) + intercept
+    slope = round(float(model.coef_[0]), 2)
+    intercept = round(float(model.intercept_), 2)
+    regn = round((slope * float(days)) + intercept, 2)
 
     data_sheet.append(['Period (days)', 'Forecast (days)', 'Forecast (R$)', 'Slope (R$/day)', 'Intercept (R$)'])
-
     data_sheet.append([days-1, days, regn, slope, intercept])
 
-    print('"Regn" sheet saved')
     return data_sheet
 
 def to_variation_sheet(stock_dict):
@@ -189,14 +183,13 @@ def to_variation_sheet(stock_dict):
     for stock in stock_dict.keys():
         ticker = yf.Ticker(stock)
         hist = ticker.history(period='1y')
-        current = float(hist['Close'].iloc[-1])
+        current = round(float(hist['Close'].iloc[-1]), 2)
         day1 = variation_delta(current, hist['Close'].iloc[-2])
         day7 = variation_delta(current, hist['Close'].iloc[-5])
         day30 = variation_delta(current, hist['Close'].iloc[-22])
         dayY = variation_delta(current, hist['Close'].iloc[0])
         data_sheet.append([stock, current, day1, day7, day30, dayY])
 
-    print('"Var" sheet saved')
     return data_sheet
 
 def to_stats_sheet(stock_dict, p='2mo'):
@@ -207,21 +200,23 @@ def to_stats_sheet(stock_dict, p='2mo'):
     hist = ticker.history(period=p)
     ibov_change = hist['Close'].pct_change()
 
-    data_sheet = [['Stock', 'Current (R$)', 'Mean (R$)', 'Std Dev (R$)', 'IBOV Corr']]
+    data_sheet = [['Stock', 'Current (R$)', 'Mean (R$)', 'Std Dev (R$)', 'IBOV Corr', 'C<M', 'C-M', '(C-M)/S']]
 
     for stock in stock_dict.keys():
         ticker = yf.Ticker(stock)
         hist = ticker.history(period=p)
 
-        current = float(hist['Close'].iloc[-1])
-        mean = float(hist['Close'].mean())
-        std_dev = float(hist['Close'].std())
+        current = round(float(hist['Close'].iloc[-1]), 2)
+        mean = round(float(hist['Close'].mean()), 2)
+        std_dev = round(float(hist['Close'].std()), 2)
         stock_change = hist['Close'].pct_change()
         correlation = float(ibov_change.corr(stock_change))
+        test = current < mean
+        delta1 = current - mean
+        delta2 = round(delta1 / std_dev, 2)
 
-        data_sheet.append([stock, current, mean, std_dev, correlation])
+        data_sheet.append([stock, current, mean, std_dev, correlation, test, delta1, delta2])
 
-    print('"Stats" sheet saved')
     return data_sheet
 
 def future_value(present, i, t, alist=[]):
@@ -240,11 +235,10 @@ def to_time_sheet(stock_dict, years=10):
 
     data_sheet = [['Interest X Years'] + list(range(0, years+1))]
 
-    for i in range(0,10):
+    for i in range(-7,10):
         interest = (1+i) * 0.01
         data_sheet.append([interest] + future_value(total_inv, interest, years, []))
 
-    print('"Time" sheet saved')
     return data_sheet
 
 if __name__ == "__main__":
